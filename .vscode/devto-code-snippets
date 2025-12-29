@@ -1,0 +1,15 @@
+{
+  "dev.to frontmatter": {
+    "prefix": "devto",
+    "body": [
+      "---",
+      "title: \"$1\"",
+      "published: false",
+      "tags: vscode, windows",
+      "canonical_url:",
+      "---",
+      "",
+      "$0"
+    ]
+  }
+}
