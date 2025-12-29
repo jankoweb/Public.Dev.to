@@ -1,119 +1,127 @@
-# Publikování článků na dev.to z GitHubu
+# DEV.to publishing via GitHub Actions
 
-Tento repozitář slouží k **automatickému publikování článků na dev.to** pomocí **GitHub Actions** a **DEV Community API (beta)**.
+Publikace a **aktualizace článků na dev.to** z Markdown souborů v GitHub repozitáři  
+pomocí GitHub Actions (`sinedied/publish-devto@v2`).
 
-Repo používá **oddělenou větev `publish`**, aby bylo možné v `main` psát a upravovat obsah bez rizika publikace.
-
----
-
-## Základní princip
-
-- `main` → psaní, drafty, experimenty
-- `publish` → **jediná větev, ze které se publikuje**
-- Publikace proběhne **jen při pushi do `publish`**
+Cíl:
+- psát články lokálně v Markdownu
+- verzovat je v GitHubu
+- **automaticky publikovat a aktualizovat** na dev.to
 
 ---
 
-## Jak to funguje
+## 1️⃣ Struktura repozitáře
 
-- Každý článek je **Markdown soubor**
-- Soubor **musí začínat dev.to front-matter**
-- Po `git push` do větve `publish`:
-  - první push → vytvoří nový článek
-  - další push → aktualizuje existující
-- **Smazání souboru článek nemaže** (lze jen přes UI na dev.to)
+```
+.
+├─ posts/
+│  └─ test.md
+└─ .github/
+   └─ workflows/
+      └─ publish-devto.yml
+```
+
+Každý `.md` soubor = **1 článek**.
 
 ---
 
-## Povinný front-matter
+## 2️⃣ Front-matter článku (POVINNÉ)
 
 ```md
 ---
-title: Název článku
+title: "Test"
 published: true
-tags: vscode, windows, powershell
+tags: test
+---
+
+Obsah článku…
+```
+
+### Pravidla
+- `title` = identifikátor článku → **neměnit**, pokud chceš update
+- max **4 tagy**
+- žádné prázdné hodnoty
+
+❌ ŠPATNĚ
+```yaml
 canonical_url:
----
 ```
 
-Minimum:
+✅ SPRÁVNĚ
+- klíč vůbec neuvádět
+
+---
+
+## 3️⃣ GitHub Actions workflow
+
+`.github/workflows/publish-devto.yml`
+
+```yaml
+name: Publish to dev.to
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: sinedied/publish-devto@v2
+        with:
+          devto_key: ${{ secrets.DEVTO_API_KEY }}
+          files: posts/**/*.md
+          branch: main
+          dry_run: false
+```
+
+---
+
+## 4️⃣ DEV.to API key
+
+- DEV.to → Settings → Account → DEV API Keys
+- GitHub → Settings → Secrets → Actions
+- secret: `DEVTO_API_KEY`
+
+Pole je po uložení při editaci **vždy prázdné** – je to normální.
+
+---
+
+## 5️⃣ Aktualizace článků
+
+- mapování podle `title`
+- shoda → UPDATE
+- neshoda → CREATE
+
+Neměnit:
 - `title`
-- `published: true | false`
+- nemaž článek ručně na dev.to
 
 ---
 
-## Jak psát nové články
+## FAQ
 
-### 1️⃣ GitHub Markdown template
-V repozitáři je připraven template:
+### Warning: Can't add secret mask for empty string
+Příčina: prázdný `canonical_url`.  
+Řešení: klíč **odstranit celý**.
 
-```
-.github/ISSUE_TEMPLATE/devto-post.md
-```
+### HTTP 422
+- změněný `title`
+- smazaný článek na dev.to
+- nevalidní front-matter
 
-Postup:
-1. **Add file → Create new file**
-2. Vyber template
-3. Doplň `title`, `tags`
-4. Napiš obsah
-5. Commitni do `main`
-
----
-
-### 2️⃣ VS Code snippet
-Ve VS Code napiš `devto` a rozbal snippet  
-(front-matter se vloží automaticky)
-
-Snippet je uložen v:
-```
-.vscode/devto.code-snippets
+### 403 github-actions[bot]
+Chybí write permissions:
+```yaml
+permissions:
+  contents: write
 ```
 
 ---
 
-## Publikace článků
-
-```bash
-git checkout publish
-git merge main
-git push
-```
-
-Tím se spustí GitHub Action a články se publikují / aktualizují na dev.to.
-
----
-
-## GitHub Action
-
-Workflow je uložen v:
-```
-.github/workflows/devto.yml
-```
-
-Publikuje pouze:
-- větev `publish`
-- soubory `posts/**/*.md`
-
----
-
-## Požadavky
-
-### DEV.to
-- vygenerovaný **DEV Community API Key (beta)**  
-  https://developers.forem.com/api
-
-### GitHub
-- secret `DEVTO_API_KEY` uložený v repo settings
-
----
-
-## Poznámky
-
-- Repo může být **public i private**
-- Publikování je **jednosměrné (GitHub → dev.to)**
-- DEV API je **beta**
-
----
-
-Autor:  
-https://dev.to/jankoweb
+Ověřeno v praxi: update i publish funguje.
