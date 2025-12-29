@@ -1,6 +1,6 @@
 ---
 title: "test"
-published: false
+published: true
 tags: vscode, windows
 canonical_url:
 ---
