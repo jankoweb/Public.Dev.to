@@ -6,3 +6,4 @@ canonical_url:
 ---
 
 Prvni testovaci prispevek.
+Obrázek ![alt](image.png)
