@@ -1,8 +1,8 @@
 ---
 title: "test"
 published: true
-tags: vscode, windows
+tags: vscode, git
 ---
 
-Prvni testovaci prispevek. A uprava.
+Prvni testovaci prispevek po opravach.
 Obrázek ![alt](img/image.png)
