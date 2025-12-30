@@ -1,5 +1,5 @@
 ---
-title: "Moved from https://jankoweb.tumblr.com/"
+title: 'Moved from https://jankoweb.tumblr.com/'
 published: true
 tags: 'vscode, git'
 id: 3134569
