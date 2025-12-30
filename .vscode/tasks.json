@@ -1,0 +1,13 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "New DEV.to post (today)",
+      "type": "shell",
+      "command": "$d = Get-Date -Format yyMMdd; $f = 'posts/' + $d + '.md'; if (!(Test-Path $f)) { @('---','title: \"\"','published: false','tags:','---','') | Set-Content -Encoding utf8 $f }",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}
+ 

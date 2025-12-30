@@ -1,3 +1,14 @@
+# Rychlý navigace
+
+## Vytvoření článku
+1. Otevři projekt ve VS Code  
+2. `Ctrl+Shift+P`
+3. **Run Task
+4. New DEV.to post (today)
+Vytvoří se soubor `posts/YYMMDD.md`.
+
+---
+
 # DEV.to publishing via GitHub Actions
 
 Publikace a **aktualizace článků na dev.to** z Markdown souborů v GitHub repozitáři  
