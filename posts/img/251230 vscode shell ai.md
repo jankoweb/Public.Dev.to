@@ -1,7 +1,9 @@
 ---
-title: "VS Code Terminal Shell Integration (Windows)"
+title: VS Code Terminal Shell Integration (Windows)
 published: true
-tags: vscode, windows, AI
+tags: 'vscode, windows, AI'
+id: 3134583
+date: '2025-12-30T00:19:11Z'
 ---
 
 To avoid “The terminal is awaiting input” and similar prompts, VS Code needs Terminal Shell Integration enabled and a supported shell.
