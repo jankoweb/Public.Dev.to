@@ -14,8 +14,8 @@
         ".gitignore": true,
         "*.spec": true,
         "*.code-workspace": true,
-        ".github/": false,
-        ".vscode/": false
+        ".github/": true,
+        ".vscode/": true
     },
     "hide-files.files": []
 }
