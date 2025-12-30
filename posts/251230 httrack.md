@@ -1,7 +1,9 @@
 ---
-title: "HTTrack Website Copier – Troubleshooting gzip Errors"
+title: HTTrack Website Copier – Troubleshooting gzip Errors
 published: true
-tags: httrack, archive, issues
+tags: 'httrack, archive, issues'
+id: 3134585
+date: '2025-12-30T00:24:42Z'
 ---
 
 **HTTrack** is a free, open-source offline browser utility. Download sites for offline viewing: [httrack.com](https://www.httrack.com/)
