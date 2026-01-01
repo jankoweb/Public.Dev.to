@@ -1,10 +1,7 @@
 # Rychlý navigace
 
 ## Vytvoření článku
-1. Otevři projekt ve VS Code  
-2. `Ctrl+Shift+P`
-3. **Run Task
-4. New DEV.to post (today)
+Stiskni F5 (je nastaveno v launch.json a tasks.json).
 Vytvoří se soubor `posts/YYMMDD.md`.
 
 ---

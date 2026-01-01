@@ -3,11 +3,35 @@
   "tasks": [
     {
       "label": "New DEV.to post (today)",
-      "type": "shell",
-      "command": "$d = Get-Date -Format yyMMdd; $f = 'posts/' + $d + '.md'; if (!(Test-Path $f)) { @('---','title: \"\"','published: false','tags:','---','') | Set-Content -Encoding utf8 $f }",
+      "type": "process",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-Command",
+        "$ErrorActionPreference='Stop'; $d=Get-Date -Format 'yyMMdd'; $n=$env:POST_NAME; if ([string]::IsNullOrWhiteSpace($n)) { $fname=('{0}.md' -f $d) } else { $fname=('{0} {1}.md' -f $d, $n) }; $dir=Join-Path $PWD 'posts'; if (!(Test-Path $dir)) { New-Item -ItemType Directory -Path $dir | Out-Null }; $f=Join-Path $dir $fname; if (!(Test-Path $f)) { @('---','title: \"\"','published: false','tags:','---','') | Set-Content -Encoding utf8 $f }; code -r $f"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "POST_NAME": "${input:postName}"
+        }
+      },
       "group": "build",
-      "problemMatcher": []
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "postName",
+      "type": "promptString",
+      "description": "Zadejte název příspěvku (nepovinné):",
+      "default": ""
     }
   ]
 }
- 

@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Vytvořit DEV.to post (F5)",
+      "type": "node",
+      "request": "launch",
+      "preLaunchTask": "New DEV.to post (today)",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ]
+}
