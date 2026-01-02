@@ -1,9 +1,9 @@
 ---
-title: "Automating Git Workflow in VS Code: AI Commit & Sync with One Shortcut"
+title: 'Automating Git Workflow in VS Code: AI Commit & Sync with One Shortcut'
 published: true
-tags: "vscode, productivity, AI, commit"
+tags: 'vscode, productivity, AI, commit'
 id: 3141639
-date: "2026-01-01T20:39:08Z"
+date: '2026-01-01T20:39:08Z'
 ---
 
 # Automating Git Workflow in VS Code: AI Commit & Sync with One Shortcut
