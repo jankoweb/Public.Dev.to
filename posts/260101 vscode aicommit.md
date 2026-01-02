@@ -47,13 +47,15 @@ Add the following configuration:
         "  }",
         "  await sleep(100);",
         "}",
-        "await window.showWarningMessage('AI Commit: timeout waiting for message');"
+        "",
+        "await sleep(500);",
+        "await vscode.commands.executeCommand('workbench.userData.sync.start');"
       ]
     }
   ]
 }
 ```
-
+ 
 ---
 
 ## Step 2: Map the Keyboard Shortcut
