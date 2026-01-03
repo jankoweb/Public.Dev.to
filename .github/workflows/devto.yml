@@ -16,10 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Get changed posts (HEAD commit only)
+      - name: Get changed posts
         id: changed
         run: |
-          FILES=$(git show --name-only --pretty="" HEAD \
+          FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} \
             | grep '^posts/.*\.md$' \
             | tr '\n' ' ')
           echo "FILES=$FILES" >> $GITHUB_OUTPUT
