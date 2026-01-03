@@ -31,12 +31,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # ← DŮLEŽITÉ
+          fetch-depth: 0
 
       - name: Get changed posts
         id: changed
         run: |
-          FILES=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" -- 'posts/**/*.md' | tr '\n' ' ')
+          FILES=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" -- posts \
+            | grep '\.md$' \
+            | tr '\n' ' ')
           echo "FILES=$FILES" >> $GITHUB_OUTPUT
 
       - name: Publish articles to dev.to
@@ -49,4 +51,4 @@ jobs:
           conventional_commits: true
 ```
 
-This setup automatically publishes your articles to DEV.to when you commit changes to markdown files in the posts directory. 
+This setup automatically publishes your articles to DEV.to when you commit changes to markdown files in the posts directory.

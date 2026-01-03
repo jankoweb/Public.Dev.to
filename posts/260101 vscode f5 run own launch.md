@@ -48,7 +48,6 @@ To run the task with F5 without debug UI:
 This is the robust approach for Windows.
 
 ---
- 
 ## Working `tasks.json`
  
 ```json
