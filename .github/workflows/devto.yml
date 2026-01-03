@@ -21,3 +21,4 @@ jobs:
         with:
           devto_key: ${{ secrets.DEVTO_API_KEY }}
           files: posts/**/*.md
+          conventional_commits: true # only changes files
