@@ -21,4 +21,5 @@ jobs:
         with:
           devto_key: ${{ secrets.DEVTO_API_KEY }}
           files: posts/**/*.md
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           conventional_commits: true # only changes files
