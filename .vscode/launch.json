@@ -2,10 +2,14 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Vytvořit DEV.to post (F5)",
+      "name": "Run Task",
       "type": "node",
       "request": "launch",
+      "program": "echo",
+      "args": ["Task completed"],
       "preLaunchTask": "New DEV.to post (today)",
+      "noDebug": true,
+      "console": "internalConsole",
       "internalConsoleOptions": "neverOpen"
     }
   ]

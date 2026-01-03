@@ -6,41 +6,50 @@ id: 3146726
 date: '2026-01-03T23:09:03Z'
 ---
  
-This article documents a **verified, working setup** for creating a new DEV.to Markdown post using **VS Code Tasks** on **Windows** with **PowerShell (pwsh)**. 
+This article provides a **verified setup** for creating new DEV.to posts using **VS Code Tasks** on **Windows** with **PowerShell**.
 
-The solution avoids all common pitfalls with quoting, spaces, and input handling.
-
----
-
-## Problem Summary
-
-When using `tasks.json` with:
-
-- `type: "shell"`
-- inline PowerShell via `-Command`
-- `${input:...}` directly embedded in the script
-
-VS Code expands inputs **without shell escaping**.  
-If the input contains spaces, the PowerShell parser breaks, producing errors such as:
-
-- `Missing statement block after if`
-- `Unexpected token`
-- broken array literals like `@(---,title:,...)`
+It avoids common issues with input handling and quoting.
 
 ---
 
-## Key Principles (from VS Code documentation)
+## Problem
 
-1. **Do not interpolate `${input:...}` directly into PowerShell code**
-2. **Use `type: "process"`**, not `shell`
-3. **Pass user input via environment variables**
-4. Let PowerShell read input from `$env:VAR_NAME`
+Using `tasks.json` with `type: "shell"`, inline PowerShell, and `${input:...}` directly in scripts causes VS Code to expand inputs without escaping. Spaces in input break PowerShell parsing, leading to errors like "Missing statement block" or broken arrays.
 
-This is the only robust and documented-safe approach on Windows.
+## Launch Configuration
+
+To run the task with F5 without debug UI:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Task",
+      "type": "node",
+      "request": "launch",
+      "program": "echo",
+      "args": ["Task completed"],
+      "preLaunchTask": "New DEV.to post (today)",
+      "noDebug": true,
+      "console": "internalConsole",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ]
+}
+```
+
+## Key Principles
+
+1. Avoid interpolating `${input:...}` directly into PowerShell.
+2. Use `type: "process"`, not `shell`.
+3. Pass input via environment variables (`$env:VAR_NAME`).
+
+This is the robust approach for Windows.
 
 ---
 
-## Final Working `tasks.json`
+## Working `tasks.json`
 
 ```json
 {
@@ -76,40 +85,38 @@ This is the only robust and documented-safe approach on Windows.
 }
 ```
 
----
 
-## What This Task Does
-
-- Prompts for an optional post name
-- Creates a file:
-  - `yyMMdd.md` (no name)
-  - `yyMMdd Post Name.md` (with name)
-- Ensures the `posts/` directory exists
-- Writes DEV.to front‑matter if the file does not exist
-- Opens the file in VS Code
 
 ---
 
-## Why This Works
+## Task Behavior
 
-- `type: "process"` bypasses shell re-parsing
-- Environment variables preserve spaces safely
-- PowerShell receives clean, valid syntax every time
-
-This pattern is **stable, reproducible, and production‑safe**.
+- Prompts for optional post name.
+- Creates file: `yyMMdd.md` or `yyMMdd Name.md`.
+- Ensures `posts/` directory exists.
+- Adds DEV.to front-matter if new.
+- Opens file in VS Code.
 
 ---
 
-## Recommended Extensions
+## Why It Works
 
-- Slugify file names
-- Auto-fill `title:` from file name
-- Auto-set `published: true` for drafts vs posts
+- `type: "process"` avoids shell re-parsing.
+- Environment variables handle spaces safely.
+- PowerShell gets valid syntax.
+
+Stable and safe for production.
+
+---
+
+## Recommendations
+
+- Use extensions for slugifying filenames.
+- Auto-fill title from filename.
+- Set `published: true` for posts.
 
 ---
 
 ## Conclusion
 
-If you are using **VS Code + PowerShell on Windows**, this is the **correct and verified** way to handle user input in `tasks.json`.
-
-Anything else will eventually break.
+For **VS Code + PowerShell on Windows**, this is the correct way to handle inputs in `tasks.json`. Other methods will break.
