@@ -16,10 +16,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Get changed posts
+        id: changed
+        run: |
+          FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- 'posts/**/*.md' | tr '\n' ' ')
+          echo "FILES=$FILES" >> $GITHUB_OUTPUT
+
       - name: Publish articles to dev.to
+        if: steps.changed.outputs.FILES != ''
         uses: sinedied/publish-devto@v2
         with:
           devto_key: ${{ secrets.DEVTO_API_KEY }}
-          files: posts/**/*.md
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          conventional_commits: true # only changes files
+          files: ${{ steps.changed.outputs.FILES }}
+          conventional_commits: true
