@@ -1,5 +1,5 @@
 ---
-title: "Enhancing Todo Tree in VS Code"
+title: 'Enhancing Todo Tree in VS Code'
 published: true
 tags: 'vscode, todo-tree, productivity'
 ---

@@ -1,5 +1,5 @@
 ---
-title: "Creating a Reliable VS Code Task for New DEV.to Posts (Windows + PowerShell)"
+title: 'Creating a Reliable VS Code Task for New DEV.to Posts (Windows + PowerShell)'
 published: true
 tags: 'vscode, productivity, shortcut, dev.to'
 ---
