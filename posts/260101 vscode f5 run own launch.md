@@ -1,7 +1,9 @@
 ---
-title: 'Creating a Reliable VS Code Task for New DEV.to Posts (Windows + PowerShell)'
+title: Creating a Reliable VS Code Task for New DEV.to Posts (Windows + PowerShell)
 published: true
-tags: vscode, productivity, shortcut, devto
+tags: 'vscode, productivity, shortcut, devto'
+id: 3146726
+date: '2026-01-03T23:09:03Z'
 ---
  
 This article documents a **verified, working setup** for creating a new DEV.to Markdown post using **VS Code Tasks** on **Windows** with **PowerShell (pwsh)**. 
