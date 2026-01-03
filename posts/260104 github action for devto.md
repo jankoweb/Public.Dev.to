@@ -4,7 +4,7 @@ published: true
 tags: github,actions,devto,automation
 ---
 
-GitHub Actions can automate publishing your markdown articles to DEV.to whenever you push changes to your repository.
+GitHub Actions can automate publishing your markdown articles to DEV.to whenever you push changes to your repository. 
 
 ## What You Need
 
@@ -30,11 +30,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # ← DŮLEŽITÉ
 
       - name: Get changed posts
         id: changed
         run: |
-          FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- 'posts/**/*.md' | tr '\n' ' ')
+          FILES=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" -- 'posts/**/*.md' | tr '\n' ' ')
           echo "FILES=$FILES" >> $GITHUB_OUTPUT
 
       - name: Publish articles to dev.to
@@ -45,7 +47,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           files: ${{ steps.changed.outputs.FILES }}
           conventional_commits: true
-
 ```
 
 This setup automatically publishes your articles to DEV.to when you commit changes to markdown files in the posts directory.
