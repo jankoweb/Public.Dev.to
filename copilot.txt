@@ -1,0 +1,2 @@
+Uprav do anglictiny tento clanek pro dev.to o tento problematice, strucne popis co je treba at je to srozumitelne co to dela, ale ne moc dlouhe.
+Dale rovnou uprav titulek, vymysli tagy a dej published na true.
