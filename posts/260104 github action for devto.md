@@ -49,4 +49,4 @@ jobs:
           conventional_commits: true
 ```
 
-This setup automatically publishes your articles to DEV.to when you commit changes to markdown files in the posts directory.
+This setup automatically publishes your articles to DEV.to when you commit changes to markdown files in the posts directory. 
