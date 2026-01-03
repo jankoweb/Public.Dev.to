@@ -30,14 +30,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Get changed posts
+      - name: Get changed posts (HEAD commit only)
         id: changed
         run: |
-          FILES=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" -- posts \
-            | grep '\.md$' \
+          FILES=$(git show --name-only --pretty="" HEAD \
+            | grep '^posts/.*\.md$' \
             | tr '\n' ' ')
           echo "FILES=$FILES" >> $GITHUB_OUTPUT
 
