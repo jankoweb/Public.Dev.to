@@ -4,7 +4,7 @@ published: true
 tags: vscode, todotree, productivity
 ---
 
-Todo Tree collects inline TODO/FIXME-style comments from your code and shows them in a compact tree view in VS Code. Below is a concise explanation of useful settings and why they help. 
+Todo Tree collects inline TODO/FIXME-style comments from your code and shows them in a compact tree view in VS Code. Below is a concise explanation of useful settings and why they help.
 
 - Group items in the tree (`todo-tree.tree.grouped`) to organise by file or tag for faster navigation.
 - Enable grouping buttons (`todo-tree.tree.buttons.groupByTag`, `groupBySubTag`) to quickly switch views.
