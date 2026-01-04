@@ -37,7 +37,6 @@ Add the following configuration:
           "const repo = api.repositories?.[0];",
           "if (!repo) { await vscode.window.showErrorMessage('No Git repository in this window'); return; }",
           "",
-          "await vscode.commands.executeCommand('git.pullRebase');",
           "await vscode.commands.executeCommand('git.stageAll');",
           "await vscode.commands.executeCommand('workbench.view.scm');",
           "await vscode.commands.executeCommand('github.copilot.git.generateCommitMessage');",
@@ -60,7 +59,9 @@ Add the following configuration:
           "}",
           "",
           "await sleep(500);",
-          "await vscode.commands.executeCommand('git.push');"
+          "await vscode.commands.executeCommand('git.push');",
+          "await sleep(500);",
+          "await vscode.commands.executeCommand('git.pullRebase');"
         ]
       }
     ]
