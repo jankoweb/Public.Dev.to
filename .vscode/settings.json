@@ -15,11 +15,11 @@
         ".venv/": true,
         "build/": true,
         "dist/": true,
-        ".vscode/": true,
-        ".github/": true,
         ".gitignore": true,
         "*.spec": true,
-        "*.code-workspace": true
+        "*.code-workspace": true,
+        ".vscode/": true,
+        ".github/": true
     },
     "hide-files.files": []
 }

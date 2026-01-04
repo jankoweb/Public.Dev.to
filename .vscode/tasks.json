@@ -7,30 +7,21 @@
       "command": "pwsh",
       "args": [
         "-NoProfile",
-        "-Command",
-        "$ErrorActionPreference='Stop'; $d=Get-Date -Format 'yyMMdd'; $n=$env:POST_NAME; if ([string]::IsNullOrWhiteSpace($n)) { $fname=('{0}.md' -f $d) } else { $fname=('{0} {1}.md' -f $d, $n) }; $dir=Join-Path $PWD 'posts'; if (!(Test-Path $dir)) { New-Item -ItemType Directory -Path $dir | Out-Null }; $f=Join-Path $dir $fname; if (!(Test-Path $f)) { @('---','title: \"\"','published: false','tags:','---','') | Set-Content -Encoding utf8 $f }; code -r $f"
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\.vscode\\new_devto_post.ps1"
       ],
       "options": {
-        "cwd": "${workspaceFolder}",
-        "env": {
-          "POST_NAME": "${input:postName}"
-        }
+        "cwd": "${workspaceFolder}"
       },
       "group": "build",
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
         "panel": "shared",
-        "showReuseMessage": false,
+        "showReuseMessage": false
       }
-    }
-  ],
-  "inputs": [
-    {
-      "id": "postName",
-      "type": "promptString",
-      "description": "Zadejte název příspěvku (nepovinné):",
-      "default": ""
     }
   ]
 }
