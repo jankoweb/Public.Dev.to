@@ -5,19 +5,19 @@ $d = Get-Date -Format 'yyMMdd'
 
 $form = New-Object System.Windows.Forms.Form
 $form.Text = 'Vytvoření nového DEV.to článku'
-$form.ClientSize = New-Object System.Drawing.Size(560,520)
+$form.ClientSize = New-Object System.Drawing.Size(560,460)
 $form.StartPosition = 'CenterScreen'
 
 $descLabel = New-Object System.Windows.Forms.Label
 $descLabel.Text = 'Zadejte název a obsah článku. Klikněte na "Zkopírovat Copilot pokyny" pro zkopírování instrukcí do schránky, pak otevřete Copilot chat a vložte je.'
 $descLabel.Location = New-Object System.Drawing.Point(12,8)
-$descLabel.Size = New-Object System.Drawing.Size(536,70)
+$descLabel.Size = New-Object System.Drawing.Size(536,56)
 $descLabel.AutoSize = $false
 $descLabel.Font = New-Object System.Drawing.Font('Segoe UI',9)
 $form.Controls.Add($descLabel)
 
 $nameLabel = New-Object System.Windows.Forms.Label
-$nameLabel.Text = 'Název článku (volitelné):'
+$nameLabel.Text = 'Název článku:'
 $nameLabel.Location = New-Object System.Drawing.Point(12,88)
 $nameLabel.Size = New-Object System.Drawing.Size(536,18)
 $nameLabel.AutoSize = $false
@@ -47,37 +47,75 @@ $textBox = New-Object System.Windows.Forms.TextBox
 $textBox.Multiline = $true
 $textBox.ScrollBars = 'Vertical'
 $textBox.Location = New-Object System.Drawing.Point(12,170)
-$textBox.Size = New-Object System.Drawing.Size(536,260)
+$textBox.Size = New-Object System.Drawing.Size(536,220)
 $textBox.Font = New-Object System.Drawing.Font('Segoe UI',9)
 $form.Controls.Add($textBox)
 
-$button = New-Object System.Windows.Forms.Button
-$button.Text = 'Zkopírovat Copilot pokyny'
-$button.Location = New-Object System.Drawing.Point(12,440)
-$button.Size = New-Object System.Drawing.Size(240,30)
-$button.Add_Click({
+function Validate-Name {
+    if ([string]::IsNullOrWhiteSpace($nameTextBox.Text)) {
+        [System.Windows.Forms.MessageBox]::Show('Zadejte název článku.','Chyba',[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Warning)
+        return $false
+    }
+    return $true
+}
+
+$copyButton = New-Object System.Windows.Forms.Button
+$copyButton.Text = 'Vytvořit a zkopírovat do schránky Copilot pokyny'
+$copyButton.Size = New-Object System.Drawing.Size(196,36)
+$copyButton.BackColor = [System.Drawing.Color]::FromArgb(46,204,113)
+$copyButton.ForeColor = [System.Drawing.Color]::White
+$copyButton.Font = New-Object System.Drawing.Font('Segoe UI',9,[System.Drawing.FontStyle]::Bold)
+$copyButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+$copyButton.FlatAppearance.BorderSize = 0
+$copyButton.Add_Click({
+    if (-not (Validate-Name)) { return }
     $copilotContent = (Get-Content 'copilot.txt' -Raw)
     $copilotContent | Set-Clipboard
-    $button.BackColor = [System.Drawing.Color]::LightGray
+    $form.Tag = @{Name=$nameTextBox.Text; Content=$textBox.Text}
+    $form.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $form.Close()
 })
-$form.Controls.Add($button)
+$form.Controls.Add($copyButton)
 
 $okButton = New-Object System.Windows.Forms.Button
 $okButton.Text = 'Vytvořit'
-$okButton.Location = New-Object System.Drawing.Point(264,440)
-$okButton.Size = New-Object System.Drawing.Size(120,30)
-$okButton.Add_Click({ $form.Tag = @{Name=$nameTextBox.Text; Content=$textBox.Text}; $form.DialogResult = [System.Windows.Forms.DialogResult]::OK; $form.Close() })
+$okButton.Size = New-Object System.Drawing.Size(120,36)
+$okButton.Font = New-Object System.Drawing.Font('Segoe UI',9,[System.Drawing.FontStyle]::Bold)
+$okButton.Add_Click({
+    if (-not (Validate-Name)) { return }
+    $form.Tag = @{Name=$nameTextBox.Text; Content=$textBox.Text}
+    $form.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $form.Close()
+})
 $form.Controls.Add($okButton)
 
 $cancelButton = New-Object System.Windows.Forms.Button
 $cancelButton.Text = 'Storno'
-$cancelButton.Location = New-Object System.Drawing.Point(392,440)
-$cancelButton.Size = New-Object System.Drawing.Size(156,30)
+$cancelButton.Size = New-Object System.Drawing.Size(120,36)
 $cancelButton.Add_Click({ $form.DialogResult = [System.Windows.Forms.DialogResult]::Cancel; $form.Close() })
 $form.Controls.Add($cancelButton)
 
-$form.AcceptButton = $okButton
+# Set default action to the green copy button so Enter triggers copy+create
+# Calculate right-aligned button positions and set defaults
+$contentRight = 12 + 536
+$cancelW = $cancelButton.Size.Width
+$okW = $okButton.Size.Width
+$copyW = $copyButton.Size.Width
+$spacing = 8
+$cancelX = $contentRight - $cancelW
+$okX = $cancelX - $spacing - $okW
+$copyX = $okX - $spacing - $copyW
+$btnY = 400
+$copyButton.Location = New-Object System.Drawing.Point($copyX,$btnY)
+$okButton.Location = New-Object System.Drawing.Point($okX,$btnY)
+$cancelButton.Location = New-Object System.Drawing.Point($cancelX,$btnY)
+
+# Set default action to the green copy button so Enter triggers copy+create
+$form.AcceptButton = $copyButton
 $form.CancelButton = $cancelButton
+
+# Focus the copy button by default
+$form.ActiveControl = $copyButton
 
 $result = $form.ShowDialog()
 if ($result -ne [System.Windows.Forms.DialogResult]::OK) { exit 0 }
