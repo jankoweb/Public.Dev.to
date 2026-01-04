@@ -15,13 +15,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Get changed posts
         id: changed
         run: |
-          FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} \
-            | grep '^posts/.*\.md$' \
-            | tr '\n' ' ')
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            FILES=$(git diff --name-only HEAD~1 HEAD \
+              | grep '^posts/.*\.md$' \
+              | tr '\n' ' ')
+          else
+            FILES=$(git show --name-only --pretty="" HEAD \
+              | grep '^posts/.*\.md$' \
+              | tr '\n' ' ')
+          fi
           echo "FILES=$FILES" >> $GITHUB_OUTPUT
 
       - name: Publish articles to dev.to
