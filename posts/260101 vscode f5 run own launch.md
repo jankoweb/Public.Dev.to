@@ -49,7 +49,7 @@ This is the robust approach for Windows.
 
 ---
 ## Working `tasks.json`
- 
+
 ```json
 {
   "version": "2.0.0",
