@@ -16,25 +16,41 @@ Todo Tree collects inline TODO/FIXME-style comments from your code and shows the
 Example `settings.json` snippets (adapt to your preferences):
 
 ```
-"todo-tree.tree.grouped": true,
-"todo-tree.tree.buttons.groupByTag": true,
-"todo-tree.tree.buttons.groupBySubTag": true,
-"todo-tree.general.tags": ["[ ]","[/]","@jankoweb","TODO","FIXME","@1","@2","@3","@4"],
-"todo-tree.regex.regex": "(?:^\\s*(?:-|\\d+[.)]|;|\\*+)|//|#|<!--|/\\*\\*?)\\s+($TAGS)",
-"todo-tree.tree.labelFormat": "${afterOrBefore}",
-"todo-tree.highlights.customHighlight": {
-  "[ ]": { "foreground": "green" },
-  "[/]": { "foreground": "yellow" },
-  "[x]": { "foreground": "silver" },
-  "@jankoweb": { "foreground": "magenta" },
-  "TODO": { "foreground": "green" },
-  "FIXME": { "foreground": "lime" },
-  "@1": { "foreground": "red"},
-  "@2": { "foreground": "orange"},
-  "@3": { "foreground": "yellow"},
-  "@4": { "foreground": "blue"}
-},
-"todo-tree.highlights.defaultHighlight": { "type": "whole-line" }
+"todo-tree.tree.tagsOnly": true,
+  "todo-tree.tree.grouped": true,
+  "todo-tree.tree.buttons.groupByTag": true,
+  "todo-tree.tree.buttons.groupBySubTag": true,
+  "todo-tree.general.tags": [
+    "[ ]",
+    "[/]",
+    "@jankoweb",
+    "TODO",
+    "FIXME",
+    "@1",
+    "@2",
+    "@3",
+    "@4"
+  ],
+  "todo-tree.regex.regex": "(//|#|<!--|;|/\\*|^|^[ \\t]*\\*|^[ \\t]*(-|\\d+.))\\s*($TAGS)",
+  "todo-tree.regex.regexCaseSensitive": false,
+  "todo-tree.filtering.includeGlobs": ["**/*.todo", "**/*.td"],
+  "todo-tree.filtering.excludeGlobs": ["**/node_modules/*/**"],
+  "todo-tree.tree.labelFormat": "${afterOrBefore}",
+  "todo-tree.highlights.customHighlight": {
+    "[ ]": { "foreground": "green" },
+    "[/]": { "foreground": "yellow" },
+    "[x]": { "foreground": "silver" },
+    "@jankoweb": { "foreground": "magenta" },
+    "TODO": { "foreground": "green" },
+    "FIXME": { "foreground": "lime" },
+    "@1": { "foreground": "red" },
+    "@2": { "foreground": "orange" },
+    "@3": { "foreground": "yellow" },
+    "@4": { "foreground": "blue" }
+  },
+  "todo-tree.highlights.defaultHighlight": {
+    "type": "whole-line"
+  }
 ```
 
 Workflow tips: keep tag names short and consistent, include owner prefixes when helpful, and combine Todo Tree with your issue tracker for lifecycle management. The result is faster code navigation and clearer visibility into outstanding work.
