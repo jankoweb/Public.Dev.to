@@ -1,7 +1,9 @@
 ---
-title: 'Enhancing Todo Tree in VS Code'
+title: Enhancing Todo Tree in VS Code
 published: true
-tags: vscode, todotree, productivity
+tags: 'vscode, todotree, productivity'
+id: 3148387
+date: '2026-01-04T20:56:02Z'
 ---
 
 Todo Tree collects inline TODO/FIXME-style comments from your code and shows them in a compact tree view in VS Code. Below is a concise explanation of useful settings and why they help.
