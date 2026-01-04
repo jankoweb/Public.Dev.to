@@ -46,7 +46,7 @@ To run the task with F5 without debug UI:
 3. Pass input via environment variables (`$env:VAR_NAME`).
 
 This is the robust approach for Windows.
-
+ 
 ---
 ## Working `tasks.json`
 
