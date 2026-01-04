@@ -1,7 +1,9 @@
 ---
-title: "Automating DEV.to Publishing with GitHub Actions"
+title: Automating DEV.to Publishing with GitHub Actions
 published: true
-tags: github,actions,devto,automation
+tags: 'github,actions,devto,automation'
+id: 3146812
+date: '2026-01-04T00:04:30Z'
 ---
 
 GitHub Actions can automate publishing your markdown articles to DEV.to whenever you push changes to your repository. 
