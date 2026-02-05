@@ -1,3 +1,1 @@
-- udelat pro kazdy clanek automaticky slozku a obrazky a skripty mit tam
-- dodelat skript pro vkladani snippetu do md, at muzu skripty upravovat lehce zvlast
-- nove uz umim rovnou copilot pokyny dat do .vscode, tak implementovat
+viz issues
