@@ -1,7 +1,9 @@
 ---
-title: "How to Fix GitHub Copilot Terminal Integration in VS Code"
+title: How to Fix GitHub Copilot Terminal Integration in VS Code
 published: true
-tags: vscode,copilot,terminal,integration
+tags: 'vscode,copilot,terminal,integration'
+id: 3235410
+date: '2026-02-05T16:04:54Z'
 ---
 
 
