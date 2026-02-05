@@ -5,7 +5,7 @@ tags: vscode,copilot,terminal,integration
 ---
 
 
-If your GitHub Copilot Chat is failing to send commands to the terminal or constantly asking for permission, follow these steps to fix your `settings.json`.
+If your GitHub Copilot Chat is failing to send commands to the terminal or constantly asking for permission, follow these steps to fix your `settings.json`. 
 
 ## 1. Enable Shell Integration
 Copilot cannot interact with the terminal without this.
