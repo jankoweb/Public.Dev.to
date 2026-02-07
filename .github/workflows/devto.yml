@@ -111,9 +111,113 @@ jobs:
         uses: sinedied/publish-devto@v2
         with:
           devto_key: ${{ secrets.DEVTO_API_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           files: ${{ steps.include.outputs.PROCESSED_FILES }}
-          conventional_commits: true
+          conventional_commits: false
+
+      - name: Copy front-matter updates back to original files
+        if: steps.changed.outputs.FILES != ''
+        run: |
+          python - <<'PY'
+          import os, sys, re
+          
+          # Get processed files directory
+          out_dir = 'processed_posts'
+          if not os.path.exists(out_dir):
+              print("No processed files directory found")
+              sys.exit(0)
+          
+          # Walk through processed files
+          for root, dirs, files in os.walk(out_dir):
+              for f in files:
+                  if not f.endswith('.md'):
+                      continue
+                  
+                  processed_path = os.path.join(root, f)
+                  # Get original path by removing the out_dir prefix
+                  original_path = os.path.relpath(processed_path, out_dir)
+                  
+                  if not os.path.exists(original_path):
+                      print(f"Original file not found: {original_path}")
+                      continue
+                  
+                  # Read both files
+                  with open(processed_path, 'r', encoding='utf-8') as pf:
+                      processed_content = pf.read()
+                  
+                  with open(original_path, 'r', encoding='utf-8') as of:
+                      original_content = of.read()
+                  
+                  # Extract front-matter from processed file
+                  processed_fm_match = re.match(r'^---\n(.*?)\n---\n', processed_content, re.DOTALL)
+                  original_fm_match = re.match(r'^---\n(.*?)\n---\n', original_content, re.DOTALL)
+                  
+                  if not processed_fm_match or not original_fm_match:
+                      print(f"Could not extract front-matter from {original_path}")
+                      continue
+                  
+                  processed_fm = processed_fm_match.group(1)
+                  original_fm = original_fm_match.group(1)
+                  
+                  # Extract id, date, and url from processed front-matter
+                  updates = {}
+                  for key in ['id', 'date', 'url']:
+                      match = re.search(rf'^{key}:\s*(.+)$', processed_fm, re.MULTILINE)
+                      if match:
+                          updates[key] = match.group(1).strip()
+                  
+                  if not updates:
+                      print(f"No updates found for {original_path}")
+                      continue
+                  
+                  # Update original front-matter
+                  new_fm_lines = []
+                  original_fm_lines = original_fm.split('\n')
+                  updated_keys = set()
+                  
+                  for line in original_fm_lines:
+                      key_match = re.match(r'^(\w+):', line)
+                      if key_match:
+                          key = key_match.group(1)
+                          if key in updates:
+                              new_fm_lines.append(f"{key}: {updates[key]}")
+                              updated_keys.add(key)
+                          else:
+                              new_fm_lines.append(line)
+                      else:
+                          new_fm_lines.append(line)
+                  
+                  # Add any new keys that weren't in original
+                  for key, value in updates.items():
+                      if key not in updated_keys:
+                          new_fm_lines.append(f"{key}: {value}")
+                  
+                  new_fm = '\n'.join(new_fm_lines)
+                  
+                  # Replace front-matter in original content
+                  original_body = original_content[original_fm_match.end():]
+                  new_content = f"---\n{new_fm}\n---\n{original_body}"
+                  
+                  # Write back to original file
+                  with open(original_path, 'w', encoding='utf-8') as of:
+                      of.write(new_content)
+                  
+                  print(f"Updated front-matter in {original_path}")
+                  for key, value in updates.items():
+                      print(f"  {key}: {value}")
+          PY
+
+      - name: Commit front-matter updates
+        if: steps.changed.outputs.FILES != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add posts/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update article front-matter [skip ci]"
+            git push
+          fi
 
       - name: Handle deleted articles
         if: steps.changed.outputs.DELETED != ''
