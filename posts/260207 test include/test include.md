@@ -6,6 +6,8 @@ tags: vscode, javascript, devto
 
 This is a test article for DEV.to to demonstrate code inclusion. Změna.
 
+<!-- Trigger workflow -->
+
 :(test.js)
 
 Make sure the syntax remains as is for custom processing.
