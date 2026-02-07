@@ -2,8 +2,8 @@ name: Publish to dev.to
 
 on:
   push:
-    paths:
-      - 'posts/**'
+    branches:
+      - publish
   workflow_dispatch:
     inputs:
       folder:
