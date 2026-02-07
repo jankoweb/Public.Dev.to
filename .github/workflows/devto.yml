@@ -6,74 +6,51 @@ on:
       - publish
     paths:
       - 'posts/**'
-  workflow_dispatch:
-    inputs:
-      folder:
-        description: 'Publish all markdown files from posts/<folder>'
-        required: false
-        default: ''
 
 permissions:
-  name: Publish to dev.to
+  contents: write
 
-  on:
-    workflow_dispatch:
-      inputs:
-        folder:
-          description: 'Publish all markdown files from posts/<folder>'
-          required: false
-          default: ''
-    workflow_run:
-      workflows:
-        - Build Markdown
-      types:
-        - completed
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  permissions:
-    contents: write
-
-  jobs:
-    publish:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-          with:
-            fetch-depth: 0
-
-        - name: Get changed posts
-          id: changed
-          env:
-            FOLDER: ${{ github.event.inputs.folder || '' }}
-          run: |
-            # If folder input provided (manual run), publish all .md in that folder
-            if [ -n "$FOLDER" ]; then
-              FILES=$(ls -1 posts/"$FOLDER"/*.md 2>/dev/null | tr '\n' ' ')
+      - name: Get changed posts
+        id: changed
+        env:
+          FOLDER: ${{ github.event.inputs.folder || '' }}
+        run: |
+          # If folder input provided (manual run), publish all .md in that folder
+          if [ -n "$FOLDER" ]; then
+            FILES=$(ls -1 posts/"$FOLDER"/*.md 2>/dev/null | tr '\n' ' ')
+          else
+            if git rev-parse HEAD~1 >/dev/null 2>&1; then
+              FILES=$(git diff --name-only HEAD~1 HEAD \
+                | grep '^posts/.*\.md$' \
+                | tr '\n' ' ')
             else
-              if git rev-parse HEAD~1 >/dev/null 2>&1; then
-                FILES=$(git diff --name-only HEAD~1 HEAD \
-                  | grep '^posts/.*\.md$' \
-                  | tr '\n' ' ')
-              else
-                FILES=$(git show --name-only --pretty="" HEAD \
-                  | grep '^posts/.*\.md$' \
-                  | tr '\n' ' ')
-              fi
+              FILES=$(git show --name-only --pretty="" HEAD \
+                | grep '^posts/.*\.md$' \
+                | tr '\n' ' ')
             fi
-            echo "FILES=$FILES" >> $GITHUB_OUTPUT
+          fi
+          echo "FILES=$FILES" >> $GITHUB_OUTPUT
 
-        - name: Process include syntax `:(file.ext)` into copies
-          id: include
-          if: steps.changed.outputs.FILES != ''
-          uses: actions/setup-python@v4
-          with:
-            python-version: '3.x'
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-        - name: Run include-processor
-          if: steps.changed.outputs.FILES != ''
-          env:
-            FILES: ${{ steps.changed.outputs.FILES }}
-          run: |
-            python - <<'PY'
+      - name: Run include-processor
+        id: include
+        if: steps.changed.outputs.FILES != ''
+        env:
+          FILES: ${{ steps.changed.outputs.FILES }}
+        run: |
+          python - <<'PY'
   import os, sys, re
   files = os.environ.get('FILES','').strip()
   out_dir = 'processed_posts'
@@ -117,18 +94,20 @@ permissions:
       print('Wrote processed file:', out_path)
 
   if processed:
-      # write processed file list to GITHUB_OUTPUT for downstream step
-      print('PROCESSED_FILES<<EOF' , file=sys.stdout)
-      for p in processed:
-          print(p, file=sys.stdout)
-      print('EOF', file=sys.stdout)
+      gh_out = os.environ.get('GITHUB_OUTPUT')
+      if gh_out:
+          with open(gh_out, 'a', encoding='utf-8') as out:
+              out.write('PROCESSED_FILES<<EOF\n')
+              for p in processed:
+                  out.write(p + '\n')
+              out.write('EOF\n')
   PY
 
-        - name: Publish articles to dev.to
-          if: steps.changed.outputs.FILES != ''
-          uses: sinedied/publish-devto@v2
-          with:
-            devto_key: ${{ secrets.DEVTO_API_KEY }}
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            files: ${{ steps.include.outputs.PROCESSED_FILES }}
-            conventional_commits: true
+      - name: Publish articles to dev.to
+        if: steps.changed.outputs.FILES != ''
+        uses: sinedied/publish-devto@v2
+        with:
+          devto_key: ${{ secrets.DEVTO_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          files: ${{ steps.include.outputs.PROCESSED_FILES }}
+          conventional_commits: true
