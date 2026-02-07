@@ -8,7 +8,7 @@ slug: testovaci-clanek-jak-pripravuji-prispevek-pro-devto-bph
 url: https://dev.to/jankoweb/testovaci-clanek-jak-pripravuji-prispevek-pro-devto-bph
 ---
 
-22:40
+22:41
 
 Tento krátký článek slouží jako ukázka hotového příspěvku připraveného k publikaci na DEV.to. Je jednoduchý, ale obsahuje všechny důležité části: smysluplný titulek, tagy a strukturovaný text.
 
