@@ -28,7 +28,7 @@ jobs:
           # Get all changed files in posts/
           CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep '^posts/' || true)
           FILES=""
-          echo "$CHANGED_FILES" | while IFS= read -r file; do
+          while IFS= read -r file; do
             if [[ $file == *.md ]]; then
               # If it's .md, add it
               FILES="$FILES $file"
@@ -40,7 +40,7 @@ jobs:
                 FILES="$FILES $md_file"
               fi
             fi
-          done
+          done <<< "$CHANGED_FILES"
           # Remove duplicates
           FILES=$(echo "$FILES" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')
           echo "FILES<<EOF" >> $GITHUB_OUTPUT
