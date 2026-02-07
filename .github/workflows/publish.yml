@@ -117,57 +117,89 @@ jobs:
             sys.exit(1)
           PY
 
-      - name: Process include syntax in posts
+      - name: Prepare publish copies
         if: steps.changed.outputs.FILES != ''
+        id: prepare_publish
         env:
           FILES: ${{ steps.changed.outputs.FILES }}
+        run: |
+          python - <<'PY'
+          import os, shutil, sys
+          files = [line.strip() for line in os.environ.get('FILES','').splitlines() if line.strip()]
+          if not files:
+            sys.exit(0)
+
+          out_root = os.path.join(os.getcwd(), '_publish')
+          if os.path.exists(out_root):
+            shutil.rmtree(out_root)
+          os.makedirs(out_root, exist_ok=True)
+
+          out_files = []
+          for md in files:
+            if not os.path.exists(md):
+              print('Skip missing:', md)
+              continue
+            dst = os.path.join(out_root, md)
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copy2(md, dst)
+            out_files.append(os.path.join('_publish', md))
+
+          print('PUBLISH_FILES<<EOF')
+          print('\n'.join(out_files))
+          print('EOF')
+          PY >> $GITHUB_OUTPUT
+
+      - name: Process include syntax in publish copies
+        if: steps.prepare_publish.outputs.PUBLISH_FILES != ''
+        env:
+          FILES: ${{ steps.prepare_publish.outputs.PUBLISH_FILES }}
         run: |
           python - <<'PY'
           import os, sys, re
           files = [line.strip() for line in os.environ.get('FILES','').splitlines() if line.strip()]
           if not files:
-              sys.exit(0)
+            sys.exit(0)
           for md in files:
-              if not os.path.exists(md):
-                  print('Skip missing:', md)
-                  continue
-              with open(md, 'r', encoding='utf-8') as f:
-                  s = f.read()
+            if not os.path.exists(md):
+              print('Skip missing:', md)
+              continue
+            with open(md, 'r', encoding='utf-8') as f:
+              s = f.read()
 
-              pattern = re.compile(r':\(\s*([^\s\)]+)(?:\s+lang=([^\)\s]+))?\s*\)')
+            pattern = re.compile(r':\(\s*([^\s\)]+)(?:\s+lang=([^\)\s]+))?\s*\)')
 
-              def repl(m):
-                  rel = m.group(1)
-                  lang = m.group(2)
-                  base = os.path.dirname(md)
-                  p = rel if os.path.isabs(rel) else os.path.normpath(os.path.join(base, rel))
-                  if not os.path.exists(p):
-                      print('Included file not found:', p)
-                      return m.group(0)
-                  ext = os.path.splitext(p)[1].lower()
-                  if not lang:
-                      lang_map = {'.ps1':'powershell','.sh':'bash','.js':'javascript','.ts':'typescript',
-                            '.py':'python','.json':'json','.html':'html','.css':'css'}
-                      lang = lang_map.get(ext, 'text')
-                  with open(p,'r',encoding='utf-8') as inc:
-                      code = inc.read().rstrip()
-                  return f"```{lang}\n{code}\n```"
+            def repl(m):
+              rel = m.group(1)
+              lang = m.group(2)
+              base = os.path.dirname(md)
+              p = rel if os.path.isabs(rel) else os.path.normpath(os.path.join(base, rel))
+              if not os.path.exists(p):
+                print('Included file not found:', p)
+                return m.group(0)
+              ext = os.path.splitext(p)[1].lower()
+              if not lang:
+                lang_map = {'.ps1':'powershell','.sh':'bash','.js':'javascript','.ts':'typescript',
+                  '.py':'python','.json':'json','.html':'html','.css':'css'}
+                lang = lang_map.get(ext, 'text')
+              with open(p,'r',encoding='utf-8') as inc:
+                code = inc.read().rstrip()
+              return f"```{lang}\n{code}\n```"
 
-              new = pattern.sub(repl, s)
-              if new != s:
-                  with open(md, 'w', encoding='utf-8') as f:
-                      f.write(new)
-                  print('Processed includes in', md)
+            new = pattern.sub(repl, s)
+            if new != s:
+              with open(md, 'w', encoding='utf-8') as f:
+                f.write(new)
+              print('Processed includes in', md)
           PY
 
       - name: Publish to dev.to
-        if: steps.changed.outputs.FILES != ''
+        if: steps.prepare_publish.outputs.PUBLISH_FILES != ''
         id: publish
         uses: sinedied/publish-devto@v2
         with:
           devto_key: ${{ secrets.DEVTO_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          files: ${{ steps.changed.outputs.FILES }}
+          files: ${{ steps.prepare_publish.outputs.PUBLISH_FILES }}
           branch: publish
 
       - name: Write slugs to front matter

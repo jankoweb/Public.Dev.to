@@ -28,3 +28,8 @@ tags: [tag1, tag2]
 ## FAQ
 - HTTP 422: změněný title, nevalidní front-matter.
 - 403: přidejte `permissions: contents: write`.
+
+**Important: Web edits vs repository (DŮLEŽITÉ)**
+- **Neprovádějte trvalé úpravy pouze v editaci na dev.to.** Pokud upravíte text přímo na webu (dev.to), tahle změna může být přepsána dalším spuštěním GitHub Actions, které nahraje obsah z repozitáře.
+- V repozitáři udržujeme kód odděleně pomocí include syntaxe jako `:(path/to/code.js)` — workflow rozbalí ten kód jen v dočasné kopii pro publikaci, ale v repozitáři zůstane původní `:(...)` zápis. To znamená, že úpravy těla článku provedené přímo na webu budou ztraceny při dalším publish, pokud nejsou promítnuty do repozitáře.
+- Doporučení: pokud potřebujete upravit překlepy nebo obsah trvale, upravte soubor v repozitáři (`posts/...`) a pusheujte změnu. Pokud chcete, aby úpravy na webu přežily, nejdřív syncněte repozitář s těmito změnami.
