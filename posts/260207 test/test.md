@@ -1,7 +1,9 @@
 ---
-title: "Test Article for DEV.to Publishing"
+title: Test Article for DEV.to Publishing
 published: true
-tags: test, devto, automation
+tags: 'test, devto, automation'
+id: 3240314
+date: '2026-02-07T18:08:46Z'
 ---
 
 This is a test article to verify the publishing workflow to DEV.to.
