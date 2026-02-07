@@ -1,0 +1,1 @@
+console.log("Toto je pouze ukázka kódu.");

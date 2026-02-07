@@ -2,6 +2,30 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Open DEV.to (open-devto.bat)",
+      "type": "shell",
+      "command": "${workspaceFolder}\\open-devto.bat",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "windows": {
+        "command": "${workspaceFolder}\\open-devto.bat"
+      }
+    }
+  ]
+}
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
       "label": "New DEV.to post (today)",
       "type": "process",
       "command": "pwsh",

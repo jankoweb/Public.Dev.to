@@ -57,4 +57,4 @@ Example `settings.json` snippets (adapt to your preferences):
 
 Workflow tips: keep tag names short and consistent, include owner prefixes when helpful, and combine Todo Tree with your issue tracker for lifecycle management. The result is faster code navigation and clearer visibility into outstanding work.
 
-![Result](../img/2026-01-03%2023_22_44-Greenshot.png)
+![Result](.2026-01-03%2023_22_44-Greenshot.png)

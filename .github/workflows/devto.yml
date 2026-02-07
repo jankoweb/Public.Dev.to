@@ -6,6 +6,12 @@ on:
       - main
     paths:
       - "posts/**/*.md"
+  workflow_dispatch:
+    inputs:
+      folder:
+        description: 'Publish all markdown files from posts/<folder>'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -20,15 +26,22 @@ jobs:
 
       - name: Get changed posts
         id: changed
+        env:
+          FOLDER: ${{ github.event.inputs.folder || '' }}
         run: |
-          if git rev-parse HEAD~1 >/dev/null 2>&1; then
-            FILES=$(git diff --name-only HEAD~1 HEAD \
-              | grep '^posts/.*\.md$' \
-              | tr '\n' ' ')
+          # If folder input provided (manual run), publish all .md in that folder
+          if [ -n "$FOLDER" ]; then
+            FILES=$(ls -1 posts/"$FOLDER"/*.md 2>/dev/null | tr '\n' ' ')
           else
-            FILES=$(git show --name-only --pretty="" HEAD \
-              | grep '^posts/.*\.md$' \
-              | tr '\n' ' ')
+            if git rev-parse HEAD~1 >/dev/null 2>&1; then
+              FILES=$(git diff --name-only HEAD~1 HEAD \
+                | grep '^posts/.*\.md$' \
+                | tr '\n' ' ')
+            else
+              FILES=$(git show --name-only --pretty="" HEAD \
+                | grep '^posts/.*\.md$' \
+                | tr '\n' ' ')
+            fi
           fi
           echo "FILES=$FILES" >> $GITHUB_OUTPUT
 

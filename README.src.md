@@ -1,3 +1,4 @@
+````markdown
 # Rychlý navigace
 
 ## Vytvoření článku
@@ -49,6 +50,7 @@ Zde jsou nejlepší řešení pro váš workflow:
 
    Poznámka: Pokud máte v repozitáři jiný workflow, který publikuje (např. na dev.to), upravte ten publikační workflow tak, aby běžel po dokončení tohoto kroku. To lze dosáhnout použitím `on: workflow_run` v publikačním workflow, nebo nastavením závislosti v CI podle vaší potřeby.
 
+---
 
 # DEV.to publishing via GitHub Actions
 
@@ -177,3 +179,5 @@ permissions:
 ---
 
 Ověřeno v praxi: update i publish funguje.
+
+````
