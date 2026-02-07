@@ -4,7 +4,7 @@ published: true
 tags: 'vscode, javascript, devto'
 ---
 
-This is a test article for DEV.to to demonstrate code inclusion.  
+This is a test article for DEV.to to demonstrate code inclusion.
 
 :(test.js)
 
