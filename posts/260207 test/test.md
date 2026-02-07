@@ -11,6 +11,8 @@ url: https://dev.to/jankoweb/testovaci-clanek-jak-pripravuji-prispevek-pro-devto
 
 Tento krátký článek slouží jako ukázka hotového příspěvku připraveného k publikaci na DEV.to. Je jednoduchý, ale obsahuje všechny důležité části: smysluplný titulek, tagy a strukturovaný text.
 
+:(kod.js)
+
 ## Co je cílem
 
 - Mít čistý front matter (nadpis, publikování, tagy).
