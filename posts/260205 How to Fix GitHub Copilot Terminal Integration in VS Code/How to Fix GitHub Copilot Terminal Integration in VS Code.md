@@ -1,4 +1,5 @@
----
+f
+a---
 title: How to Fix GitHub Copilot Terminal Integration in VS Code
 published: true
 tags: 'vscode,copilot,terminal,integration'

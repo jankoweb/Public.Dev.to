@@ -10,3 +10,6 @@ Dej published na true.
 
 ---
 Poznámka: Tento soubor je přesunut sem, aby byl snadno dostupný jako instrukce pro asistenty a nástroje v repozitáři.
+
+---
+YAML Validation: Při úpravě jakéhokoliv YAML souboru (.yml), použij skript .vscode/validate_yaml.py pro validaci syntaxe před tím, než mi ho předložíš. Spusť: python .vscode/validate_yaml.py <cesta_k_souboru>

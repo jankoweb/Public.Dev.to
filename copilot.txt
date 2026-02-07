@@ -1,0 +1,2 @@
+Pomoz mi publikovat tento článek na DEV.to. Zkontroluj obsah, oprav chyby, přidej tagy a připrav ho pro publikování. 
+Nemeň syntaxi pro vložení kódu, tj. nech ":(FILEPATH.EXTENSION)".
