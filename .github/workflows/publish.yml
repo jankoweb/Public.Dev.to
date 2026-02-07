@@ -4,12 +4,6 @@ on:
   push:
     branches:
       - publish
-  workflow_dispatch:
-    inputs:
-      folder:
-        description: 'Publish all markdown files from posts/<folder>'
-        required: false
-        default: ''
 
 permissions:
   contents: write
