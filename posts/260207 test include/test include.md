@@ -7,7 +7,7 @@ id: 3240369
 
 This is a test article for DEV.to to demonstrate code inclusion. Změna.
 
-<!-- Full workflow test -->
+<!-- Test with sinedied action -->
 
 :(test.js)
 
