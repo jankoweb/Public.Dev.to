@@ -92,7 +92,7 @@ jobs:
               continue
             aid = idm.group(1)
             url = f'https://dev.to/api/articles/{aid}'
-            cmd = ['curl', '-s', '-X', 'DELETE', '-H', f'api-key: {key}', '-H', 'Content-Type: application/json', '-H', 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', '-w', '%{http_code}', url]
+            cmd = ['curl', '-s', '-X', 'DELETE', '-H', f'api-key: {key}', '-H', 'Content-Type: application/json', '-H', 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', '-w', '%{http_code}', '-o', '/dev/null', url]
             try:
               result = subprocess.run(cmd, capture_output=True, text=True, check=True)
               status_code = result.stdout.strip()
