@@ -120,7 +120,7 @@ jobs:
           echo "${{ steps.include.outputs.PROCESSED_FILES }}" | while IFS= read -r file; do
             if [ -n "$file" ]; then
               echo "Publishing $file"
-              dev push "$file"
+              dev push --reconcile "$file"
               # Wait 60 seconds between publications to avoid rate limits
               sleep 60
             fi
