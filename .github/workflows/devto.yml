@@ -20,22 +20,16 @@ jobs:
 
       - name: Get changed posts
         id: changed
-        env:
-          FOLDER: ${{ github.event.inputs.folder || '' }}
         run: |
-          # If folder input provided (manual run), publish all .md in that folder
-          if [ -n "$FOLDER" ]; then
-            FILES=$(ls -1 posts/"$FOLDER"/*.md 2>/dev/null | tr '\n' ' ')
+          # Always get changed files from git diff
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            FILES=$(git diff --name-only HEAD~1 HEAD \
+              | grep '^posts/.*\.md$' \
+              | tr '\n' ' ')
           else
-            if git rev-parse HEAD~1 >/dev/null 2>&1; then
-              FILES=$(git diff --name-only HEAD~1 HEAD \
-                | grep '^posts/.*\.md$' \
-                | tr '\n' ' ')
-            else
-              FILES=$(git show --name-only --pretty="" HEAD \
-                | grep '^posts/.*\.md$' \
-                | tr '\n' ' ')
-            fi
+            FILES=$(git show --name-only --pretty="" HEAD \
+              | grep '^posts/.*\.md$' \
+              | tr '\n' ' ')
           fi
           echo "FILES=$FILES" >> $GITHUB_OUTPUT
 
@@ -51,57 +45,57 @@ jobs:
           FILES: ${{ steps.changed.outputs.FILES }}
         run: |
           python - <<'PY'
-  import os, sys, re
-  files = os.environ.get('FILES','').strip()
-  out_dir = 'processed_posts'
-  if not files:
-      sys.exit(0)
-  os.makedirs(out_dir, exist_ok=True)
-  processed = []
-  for md in files.split():
-      if not os.path.exists(md):
-          print('Skip missing:', md)
-          continue
-      with open(md, 'r', encoding='utf-8') as f:
-          s = f.read()
+          import os, sys, re
+          files = os.environ.get('FILES','').strip()
+          out_dir = 'processed_posts'
+          if not files:
+              sys.exit(0)
+          os.makedirs(out_dir, exist_ok=True)
+          processed = []
+          for md in files.split():
+              if not os.path.exists(md):
+                  print('Skip missing:', md)
+                  continue
+              with open(md, 'r', encoding='utf-8') as f:
+                  s = f.read()
 
-      pattern = re.compile(r':\(\s*([^\s\)]+)(?:\s+lang=([^\)\s]+))?\s*\)')
+              pattern = re.compile(r':\(\s*([^\s\)]+)(?:\s+lang=([^\)\s]+))?\s*\)')
 
-      def repl(m):
-          rel = m.group(1)
-          lang = m.group(2)
-          base = os.path.dirname(md)
-          p = rel if os.path.isabs(rel) else os.path.normpath(os.path.join(base, rel))
-          if not os.path.exists(p):
-              print('Included file not found:', p)
-              return m.group(0)
-          ext = os.path.splitext(p)[1].lower()
-          if not lang:
-              lang_map = {'.ps1':'powershell','.sh':'bash','.js':'javascript','.ts':'typescript',
-                    '.py':'python','.json':'json','.html':'html','.css':'css'}
-              lang = lang_map.get(ext, 'text')
-          with open(p,'r',encoding='utf-8') as inc:
-              code = inc.read().rstrip()
-          return f"```{lang}\n{code}\n```"
+              def repl(m):
+                  rel = m.group(1)
+                  lang = m.group(2)
+                  base = os.path.dirname(md)
+                  p = rel if os.path.isabs(rel) else os.path.normpath(os.path.join(base, rel))
+                  if not os.path.exists(p):
+                      print('Included file not found:', p)
+                      return m.group(0)
+                  ext = os.path.splitext(p)[1].lower()
+                  if not lang:
+                      lang_map = {'.ps1':'powershell','.sh':'bash','.js':'javascript','.ts':'typescript',
+                            '.py':'python','.json':'json','.html':'html','.css':'css'}
+                      lang = lang_map.get(ext, 'text')
+                  with open(p,'r',encoding='utf-8') as inc:
+                      code = inc.read().rstrip()
+                  return f"```{lang}\n{code}\n```"
 
-      new = pattern.sub(repl, s)
-      relpath = os.path.relpath(md)
-      out_path = os.path.join(out_dir, relpath)
-      os.makedirs(os.path.dirname(out_path), exist_ok=True)
-      with open(out_path, 'w', encoding='utf-8') as f:
-          f.write(new)
-      processed.append(out_path)
-      print('Wrote processed file:', out_path)
+              new = pattern.sub(repl, s)
+              relpath = os.path.relpath(md)
+              out_path = os.path.join(out_dir, relpath)
+              os.makedirs(os.path.dirname(out_path), exist_ok=True)
+              with open(out_path, 'w', encoding='utf-8') as f:
+                  f.write(new)
+              processed.append(out_path)
+              print('Wrote processed file:', out_path)
 
-  if processed:
-      gh_out = os.environ.get('GITHUB_OUTPUT')
-      if gh_out:
-          with open(gh_out, 'a', encoding='utf-8') as out:
-              out.write('PROCESSED_FILES<<EOF\n')
-              for p in processed:
-                  out.write(p + '\n')
-              out.write('EOF\n')
-  PY
+          if processed:
+              gh_out = os.environ.get('GITHUB_OUTPUT')
+              if gh_out:
+                  with open(gh_out, 'a', encoding='utf-8') as out:
+                      out.write('PROCESSED_FILES<<EOF\n')
+                      for p in processed:
+                          out.write(p + '\n')
+                      out.write('EOF\n')
+          PY
 
       - name: Publish articles to dev.to
         if: steps.changed.outputs.FILES != ''
