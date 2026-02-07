@@ -101,11 +101,38 @@ jobs:
                       out.write('EOF\n')
           PY
 
-      - name: Publish articles to dev.to
-        if: steps.changed.outputs.FILES != ''
-        uses: sinedied/publish-devto@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          devto_key: ${{ secrets.DEVTO_API_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          files: ${{ steps.include.outputs.PROCESSED_FILES }}
-          conventional_commits: true
+          node-version: '18'
+
+      - name: Install devto-cli
+        run: npm install -g @sinedied/devto-cli
+
+      - name: Publish articles to dev.to
+        if: steps.include.outputs.PROCESSED_FILES != ''
+        env:
+          DEVTO_TOKEN: ${{ secrets.DEVTO_API_KEY }}
+          DEVTO_REPO: ${{ github.repository }}
+          DEVTO_BRANCH: ${{ github.ref_name }}
+        run: |
+          # The PROCESSED_FILES is a multiline string with files separated by newlines
+          echo "${{ steps.include.outputs.PROCESSED_FILES }}" | while IFS= read -r file; do
+            if [ -n "$file" ]; then
+              echo "Publishing $file"
+              dev push "$file"
+              # Wait 60 seconds between publications to avoid rate limits
+              sleep 60
+            fi
+          done
+
+      - name: Commit changes
+        if: steps.include.outputs.PROCESSED_FILES != ''
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
+            git add .
+            git -c user.name="dev.to bot" -c user.email="sinedied+devtobot@gmail.com" commit -m "chore: update published articles [skip ci]"
+            git push
+          fi
