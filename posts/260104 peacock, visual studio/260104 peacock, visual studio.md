@@ -1,6 +1,8 @@
+---
 title: 'Peacock: Visual Studio Code workspace color with a keybinding'
 published: true
 tags: vscode,peacock,keybindings,productivity
+---
 
 Peacock lets you change the color of your Visual Studio Code workspace so you can visually distinguish projects or contexts.
 
