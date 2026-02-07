@@ -32,6 +32,74 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Detect deleted posts
+        id: detect_deleted
+        run: |
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            DELETED=$(git diff --name-only --diff-filter=D HEAD~1 HEAD | grep '^posts/.*\.md$' || true)
+          else
+            DELETED=''
+          fi
+          echo "DELETED<<EOF" >> $GITHUB_OUTPUT
+          echo "$DELETED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Delete removed posts on dev.to
+        if: steps.detect_deleted.outputs.DELETED != ''
+        env:
+          DELETED: ${{ steps.detect_deleted.outputs.DELETED }}
+          DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
+        run: |
+          python - <<'PY'
+          import os, re, subprocess, sys, urllib.request, shlex
+
+          deleted = [l.strip() for l in os.environ.get('DELETED','').splitlines() if l.strip()]
+          if not deleted:
+            sys.exit(0)
+          key = os.environ.get('DEVTO_API_KEY')
+          if not key:
+            print('No DEVTO_API_KEY; skipping deletion')
+            sys.exit(0)
+
+          # Try several refs to find the file content (merge commits vs simple commits)
+          refs_to_try = ['HEAD^', 'HEAD~1']
+
+          for path in deleted:
+            content = None
+            for ref in refs_to_try:
+              try:
+                cmd = ['git', 'show', f"{ref}:{path}"]
+                res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                content = res.stdout
+                break
+              except subprocess.CalledProcessError:
+                continue
+
+            if content is None:
+              print('Cannot retrieve historical content for', path, '(tried', ','.join(refs_to_try) + ')')
+              continue
+
+            m = re.search(r'---(.*?)---', content, re.S)
+            if not m:
+              print('No frontmatter in', path)
+              continue
+            fm = m.group(1)
+            idm = re.search(r'devto_id\s*:\s*(\d+)', fm)
+            if not idm:
+              idm = re.search(r'id\s*:\s*(\d+)', fm)
+            if not idm:
+              print('No devto id for', path, '; cannot delete automatically')
+              continue
+            aid = idm.group(1)
+            url = f'https://dev.to/api/articles/{aid}'
+            req = urllib.request.Request(url, method='DELETE', headers={'api-key': key, 'Content-Type':'application/json'})
+            try:
+              with urllib.request.urlopen(req) as resp:
+                print('Deleted', path, '->', aid, resp.status)
+            except Exception as e:
+              print('Failed to delete', path, aid, str(e))
+          PY
+
       - name: Process include syntax in posts
         if: steps.changed.outputs.FILES != ''
         env:
@@ -77,9 +145,80 @@ jobs:
 
       - name: Publish to dev.to
         if: steps.changed.outputs.FILES != ''
+        id: publish
         uses: sinedied/publish-devto@v2
         with:
           devto_key: ${{ secrets.DEVTO_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           files: ${{ steps.changed.outputs.FILES }}
           branch: publish
+
+        - name: Write slugs to front matter
+        if: steps.changed.outputs.FILES != ''
+        env:
+          RESULT_JSON: ${{ steps.publish.outputs.result_json }}
+          FILES: ${{ steps.changed.outputs.FILES }}
+        run: |
+          python - <<'PY'
+          import os, json, re
+          res = os.environ.get('RESULT_JSON','').strip()
+          files = [l.strip() for l in os.environ.get('FILES','').splitlines() if l.strip()]
+          if not res or not files:
+            print('No result_json or files')
+            raise SystemExit(0)
+          try:
+            data = json.loads(res)
+          except Exception:
+            data = []
+          if not isinstance(data, list):
+            data = [data]
+          for md in files:
+            match = next((a for a in data if a.get('file')==md or a.get('filename')==md), None)
+            if not match:
+              try:
+                s = open(md, encoding='utf-8').read()
+              except Exception:
+                continue
+              m = re.search(r'---\n(.*?)\n---', s, re.S)
+              title = None
+              if m:
+                fm = m.group(1)
+                tm = re.search(r'^title:\s*["\']?(.*?)["\']?$', fm, re.M)
+                if tm:
+                  title = tm.group(1).strip()
+              if title:
+                match = next((a for a in data if a.get('title','').strip()==title), None)
+            if not match:
+              print('No match for', md)
+              continue
+            slug = match.get('slug') or ''
+            if not slug:
+              print('No slug for', md)
+              continue
+            s = open(md, encoding='utf-8').read()
+            m = re.match(r'---\n(.*?)\n---\n(.*)', s, re.S)
+            if not m:
+              continue
+            fm, rest = m.group(1), m.group(2)
+            if re.search(r'(^|\n)slug:\s*', fm):
+              fm2 = re.sub(r'(^|\n)slug:\s*.*', r'\1slug: ' + slug, fm)
+            else:
+              fm2 = fm + '\nslug: ' + slug
+            new = '---\n' + fm2 + '\n---\n' + rest
+            if new != s:
+              open(md, 'w', encoding='utf-8').write(new)
+              print('WROTE SLUG ->', md, slug)
+          PY
+
+        - name: Commit slug updates
+        if: steps.changed.outputs.FILES != ''
+        run: |
+          git config user.name "dev.to bot"
+          git config user.email "devto-bot@example.com"
+          if [ -n "$(git status --porcelain)" ]; then
+          git add -A
+          git commit -m "chore: add slugs from dev.to"
+          git push origin HEAD
+          else
+          echo "No changes to commit"
+          fi
