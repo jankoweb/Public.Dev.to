@@ -1,10 +1,13 @@
 ---
-title: "Testing Code Inclus||ion in DEV.to"
+title: "Testing Code Inclusion in DEV.to"
 published: true
 tags: vscode, javascript, devto
+id: 3240369
 ---
 
-This is a test article for DEV.to to demonstrate code inclusion.
+This is a test article for DEV.to to demonstrate code inclusion. Změna.
+
+<!-- Test from main -->
 
 :(test.js)
 
