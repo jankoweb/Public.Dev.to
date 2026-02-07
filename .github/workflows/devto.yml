@@ -44,7 +44,7 @@ jobs:
           # Remove duplicates
           FILES=$(echo "$FILES" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')
           echo "FILES<<EOF" >> $GITHUB_OUTPUT
-          printf '%s\n' $FILES >> $GITHUB_OUTPUT
+          echo "$FILES" | tr ' ' '\n' >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Setup Python
