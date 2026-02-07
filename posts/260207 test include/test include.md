@@ -6,7 +6,7 @@ tags: vscode, javascript, devto
 
 This is a test article for DEV.to to demonstrate code inclusion. Změna.
 
-<!-- Final trigger -->
+<!-- Final final trigger -->
 
 :(test.js)
 
