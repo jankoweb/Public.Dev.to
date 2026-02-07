@@ -1,7 +1,7 @@
 ---
 title: "Testing Code Inclusion in DEV.to"
 published: true
-tags: 'vscode, javascript, devto'
+tags: vscode, javascript, devto
 ---
 
 This is a test article for DEV.to to demonstrate code inclusion.
