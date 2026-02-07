@@ -1,21 +1,21 @@
-# Publish articles from posts/ to dev.to
-# Requires DEVTO_API_KEY secret to be set in GitHub repository settings
-# Get API key from: DEV.to → Settings → Account → DEV API Keys
-# Add as GitHub Secret: DEVTO_API_KEY (note: secret won't be visible after saving)
 name: Publish to dev.to
 
 on:
   push:
-    branches:
-      - publish
     paths:
-      - 'posts/**'
+      - 'Dev.to/posts/**'
+  workflow_dispatch:
+    inputs:
+      folder:
+        description: 'Publish all markdown files from posts/<folder>'
+        required: false
+        default: ''
 
 permissions:
   contents: write
 
 jobs:
-  publish:
+  build_and_publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,162 +25,71 @@ jobs:
       - name: Get changed posts
         id: changed
         run: |
-          # Get all changed files in posts/
-          CHANGED_FILES=$(git show --name-only HEAD | grep '^posts/' || true)
-          FILES=""
-          while IFS= read -r file; do
-            if [[ $file == *.md ]]; then
-              # If it's .md, add it
-              FILES="$FILES $file"
-            elif [[ $file == posts/* ]]; then
-              # If other file in posts/, find the .md in the same dir
-              dir=$(dirname "$file")
-              md_file=$(find "$dir" -maxdepth 1 -name "*.md" | head -1)
-              if [ -n "$md_file" ]; then
-                FILES="$FILES $md_file"
-              fi
+          FOLDER="${{ github.event.inputs.folder || '' }}"
+          if [ -n "$FOLDER" ]; then
+            FILES=$(ls -1 posts/"$FOLDER"/*.md 2>/dev/null | tr '\n' ' ')
+          else
+            if git rev-parse HEAD~1 >/dev/null 2>&1; then
+              FILES=$(git diff --name-only HEAD~1 HEAD | grep '^posts/.*\.md$' || true)
+            else
+              FILES=$(git show --name-only --pretty="" HEAD | grep '^posts/.*\.md$' || true)
             fi
-          done <<< "$CHANGED_FILES"
-          # Remove duplicates
-          FILES=$(echo "$FILES" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')
-          echo "FILES<<EOF" >> $GITHUB_OUTPUT
-          echo "$FILES" | tr ' ' '\n' >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          fi
+          echo "FILES=$FILES" >> $GITHUB_OUTPUT
 
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
-      - name: Run include-processor
-        id: include
+      - name: Process include syntax in posts
         if: steps.changed.outputs.FILES != ''
         env:
           FILES: ${{ steps.changed.outputs.FILES }}
         run: |
           python - <<'PY'
-          import os, sys, re
-          files = os.environ.get('FILES','').strip()
-          out_dir = 'processed_posts'
-          if not files:
-              sys.exit(0)
-          os.makedirs(out_dir, exist_ok=True)
-          processed = []
-          for md in files.splitlines():
-              if not os.path.exists(md):
-                  print('Skip missing:', md)
-                  continue
-              with open(md, 'r', encoding='utf-8') as f:
-                  s = f.read()
+import os, sys, re
+files = os.environ.get('FILES','').strip()
+if not files:
+    sys.exit(0)
+for md in files.split():
+    if not os.path.exists(md):
+        print('Skip missing:', md)
+        continue
+    with open(md, 'r', encoding='utf-8') as f:
+        s = f.read()
 
-              pattern = re.compile(r':\(\s*([^\s\)]+)(?:\s+lang=([^\)\s]+))?\s*\)')
+    pattern = re.compile(r':\(\s*([^\s\)]+)(?:\s+lang=([^\)\s]+))?\s*\)')
 
-              def repl(m):
-                  rel = m.group(1)
-                  lang = m.group(2)
-                  base = os.path.dirname(md)
-                  p = rel if os.path.isabs(rel) else os.path.normpath(os.path.join(base, rel))
-                  if not os.path.exists(p):
-                      print('Included file not found:', p)
-                      return m.group(0)
-                  ext = os.path.splitext(p)[1].lower()
-                  if not lang:
-                      lang_map = {'.ps1':'powershell','.sh':'bash','.js':'javascript','.ts':'typescript',
-                            '.py':'python','.json':'json','.html':'html','.css':'css'}
-                      lang = lang_map.get(ext, 'text')
-                  with open(p,'r',encoding='utf-8') as inc:
-                      code = inc.read().rstrip()
-                  return f"```{lang}\n{code}\n```"
+    def repl(m):
+        rel = m.group(1)
+        lang = m.group(2)
+        base = os.path.dirname(md)
+        p = rel if os.path.isabs(rel) else os.path.normpath(os.path.join(base, rel))
+        if not os.path.exists(p):
+            print('Included file not found:', p)
+            return m.group(0)
+        ext = os.path.splitext(p)[1].lower()
+        if not lang:
+            lang_map = {'.ps1':'powershell','.sh':'bash','.js':'javascript','.ts':'typescript',
+                  '.py':'python','.json':'json','.html':'html','.css':'css'}
+            lang = lang_map.get(ext, 'text')
+        with open(p,'r',encoding='utf-8') as inc:
+            code = inc.read().rstrip()
+        return f"```{lang}\n{code}\n```"
 
-              new = pattern.sub(repl, s)
-              relpath = os.path.relpath(md)
-              out_path = os.path.join(out_dir, relpath)
-              os.makedirs(os.path.dirname(out_path), exist_ok=True)
-              with open(out_path, 'w', encoding='utf-8') as f:
-                  f.write(new)
-              processed.append(out_path)
-              print('Wrote processed file:', out_path)
-
-          if processed:
-              gh_out = os.environ.get('GITHUB_OUTPUT')
-              if gh_out:
-                  with open(gh_out, 'a', encoding='utf-8') as out:
-                      out.write('PROCESSED_FILES<<EOF\n')
-                      for p in processed:
-                          out.write(p + '\n')
-                      out.write('EOF\n')
-          PY
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install devto-cli
-        run: npm install -g @sinedied/devto-cli
+    new = pattern.sub(repl, s)
+    if new != s:
+        with open(md, 'w', encoding='utf-8') as f:
+            f.write(new)
+        print('Processed includes in', md)
+PY
 
       - name: Publish articles to dev.to
-        if: steps.include.outputs.PROCESSED_FILES != ''
-        env:
-          DEVTO_TOKEN: ${{ secrets.DEVTO_API_KEY }}
-          DEVTO_REPO: ${{ github.repository }}
-          DEVTO_BRANCH: ${{ github.ref_name }}
-        run: |
-          # Publish with ID handling and batched rate limiting
-          files="${{ steps.include.outputs.PROCESSED_FILES }}"
-          count=$(echo "$files" | grep -c .)
-          
-          process_file() {
-            file="$1"
-            original="${file#processed_posts/}"
-            if grep -q '^id:' "$original" 2>/dev/null; then
-              id=$(grep '^id:' "$original" | head -1 | sed 's/id:\s*//')
-              echo "Updating article with ID $id: $file"
-              dev push "$file"
-            else
-              echo "Publishing new article: $file"
-              dev push "$file"
-              # dev push adds id to $file, copy to original
-              if grep -q '^id:' "$file" 2>/dev/null; then
-                id_line=$(grep '^id:' "$file" | head -1)
-                echo "Adding $id_line to $original"
-                # Insert after title in frontmatter
-                sed -i "/^title:/a $id_line" "$original"
-              fi
-            fi
-          }
-          
-          if [ "$count" -le 2 ]; then
-            echo "$files" | while IFS= read -r file; do
-              [ -n "$file" ] && process_file "$file"
-            done
-          else
-            batch=()
-            echo "$files" | while IFS= read -r file; do
-              [ -n "$file" ] || continue
-              batch+=("$file")
-              if [ ${#batch[@]} -eq 3 ]; then
-                for f in "${batch[@]}"; do
-                  process_file "$f"
-                done
-                echo "Waiting 30 seconds..."
-                sleep 30
-                batch=()
-              fi
-            done
-            # Process remaining
-            for f in "${batch[@]}"; do
-              process_file "$f"
-            done
-          fi
-
-      - name: Commit changes
-        if: steps.include.outputs.PROCESSED_FILES != ''
-        run: |
-          if git diff --quiet; then
-            echo "No changes to commit"
-          else
-            git add .
-            git -c user.name="dev.to bot" -c user.email="sinedied+devtobot@gmail.com" commit -m "chore: update published articles [skip ci]"
-            git push
-          fi
+        if: steps.changed.outputs.FILES != ''
+        uses: sinedied/publish-devto@v2
+        with:
+          devto_key: ${{ secrets.DEVTO_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          files: ${{ steps.changed.outputs.FILES }}
+          conventional_commits: true
