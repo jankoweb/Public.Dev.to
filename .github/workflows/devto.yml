@@ -25,18 +25,26 @@ jobs:
       - name: Get changed posts
         id: changed
         run: |
-          # Always get changed files from git diff
-          if git rev-parse HEAD~1 >/dev/null 2>&1; then
-            FILES=$(git diff --name-only HEAD~1 HEAD \
-              | grep '^posts/.*\.md$' \
-              || true)
-          else
-            FILES=$(git show --name-only --pretty="" HEAD \
-              | grep '^posts/.*\.md$' \
-              || true)
-          fi
+          # Get all changed files in posts/
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep '^posts/' || true)
+          FILES=""
+          for file in $CHANGED_FILES; do
+            if [[ $file == *.md ]]; then
+              # If it's .md, add it
+              FILES="$FILES $file"
+            elif [[ $file == posts/* ]]; then
+              # If other file in posts/, find the .md in the same dir
+              dir=$(dirname "$file")
+              md_file=$(find "$dir" -maxdepth 1 -name "*.md" | head -1)
+              if [ -n "$md_file" ]; then
+                FILES="$FILES $md_file"
+              fi
+            fi
+          done
+          # Remove duplicates
+          FILES=$(echo "$FILES" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')
           echo "FILES<<EOF" >> $GITHUB_OUTPUT
-          printf '%s\n' "$FILES" >> $GITHUB_OUTPUT
+          printf '%s\n' $FILES >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Setup Python
@@ -118,15 +126,53 @@ jobs:
           DEVTO_REPO: ${{ github.repository }}
           DEVTO_BRANCH: ${{ github.ref_name }}
         run: |
-          # The PROCESSED_FILES is a multiline string with files separated by newlines
-          echo "${{ steps.include.outputs.PROCESSED_FILES }}" | while IFS= read -r file; do
-            if [ -n "$file" ]; then
-              echo "Publishing $file"
-              dev push --reconcile "$file"
-              # Wait 60 seconds between publications to avoid rate limits
-              sleep 60
+          # Publish with ID handling and batched rate limiting
+          files="${{ steps.include.outputs.PROCESSED_FILES }}"
+          count=$(echo "$files" | grep -c .)
+          
+          process_file() {
+            file="$1"
+            original="${file#processed_posts/}"
+            if grep -q '^id:' "$original" 2>/dev/null; then
+              id=$(grep '^id:' "$original" | head -1 | sed 's/id:\s*//')
+              echo "Updating article with ID $id: $file"
+              dev push "$file"
+            else
+              echo "Publishing new article: $file"
+              dev push "$file"
+              # dev push adds id to $file, copy to original
+              if grep -q '^id:' "$file" 2>/dev/null; then
+                id_line=$(grep '^id:' "$file" | head -1)
+                echo "Adding $id_line to $original"
+                # Insert after title in frontmatter
+                sed -i "/^title:/a $id_line" "$original"
+              fi
             fi
-          done
+          }
+          
+          if [ "$count" -le 2 ]; then
+            echo "$files" | while IFS= read -r file; do
+              [ -n "$file" ] && process_file "$file"
+            done
+          else
+            batch=()
+            echo "$files" | while IFS= read -r file; do
+              [ -n "$file" ] || continue
+              batch+=("$file")
+              if [ ${#batch[@]} -eq 3 ]; then
+                for f in "${batch[@]}"; do
+                  process_file "$f"
+                done
+                echo "Waiting 30 seconds..."
+                sleep 30
+                batch=()
+              fi
+            done
+            # Process remaining
+            for f in "${batch[@]}"; do
+              process_file "$f"
+            done
+          fi
 
       - name: Commit changes
         if: steps.include.outputs.PROCESSED_FILES != ''

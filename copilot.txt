@@ -1,2 +1,2 @@
-Pomoz mi publikovat tento článek na DEV.to. Zkontroluj obsah, oprav chyby, přidej tagy a připrav ho pro publikování. 
+Pomoz mi publikovat tento článek na DEV.to. Zkontroluj obsah, oprav chyby, přidej tagy (cely retezec bude v apostrofech) a připrav ho pro publikování. 
 Nemeň syntaxi pro vložení kódu, tj. nech ":(FILEPATH.EXTENSION)".
