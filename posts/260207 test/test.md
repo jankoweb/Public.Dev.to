@@ -5,13 +5,21 @@ tags: 'devto, blogging, writing, productivity'
 id: 3240492
 date: '2026-02-07T21:26:46Z'
 slug: testovaci-clanek-jak-pripravuji-prispevek-pro-devto-bph
-url: https://dev.to/jankoweb/testovaci-clanek-jak-pripravuji-prispevek-pro-devto-bph
+url: 'https://dev.to/jankoweb/testovaci-clanek-jak-pripravuji-prispevek-pro-devto-bph'
 ---
 
 
 Tento krátký článek slouží jako ukázka hotového příspěvku připraveného k publikaci na DEV.to. Je jednoduchý, ale obsahuje všechny důležité části: smysluplný titulek, tagy a strukturovaný text.
 
-:(kod.js)
+```javascript
+alert("ahoj");
+alert("ahoj");
+
+alert("ahoj");
+
+
+alert("ahoj");
+```
 
 ## Co je cílem
 
