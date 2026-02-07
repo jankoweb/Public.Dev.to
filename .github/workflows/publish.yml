@@ -144,10 +144,14 @@ jobs:
             shutil.copy2(md, dst)
             out_files.append(os.path.join('_publish', md))
 
-          print('PUBLISH_FILES<<EOF')
-          print('\n'.join(out_files))
-          print('EOF')
-          PY >> $GITHUB_OUTPUT
+          # write the list to a temp file; the shell will append it to GITHUB_OUTPUT
+          with open('/tmp/publish_files.txt','w',encoding='utf-8') as f:
+            f.write('\n'.join(out_files))
+          PY
+
+          echo "PUBLISH_FILES<<EOF" >> $GITHUB_OUTPUT
+          cat /tmp/publish_files.txt >> $GITHUB_OUTPUT || true
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Process include syntax in publish copies
         if: steps.prepare_publish.outputs.PUBLISH_FILES != ''
