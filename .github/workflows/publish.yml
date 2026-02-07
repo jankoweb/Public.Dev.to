@@ -38,8 +38,8 @@ jobs:
           FILES: ${{ steps.changed.outputs.FILES }}
         run: |
           python - <<'PY'
-          import os, sys, re, shlex
-          files = shlex.split(os.environ.get('FILES','').strip())
+          import os, sys, re
+          files = [line.strip() for line in os.environ.get('FILES','').splitlines() if line.strip()]
           if not files:
               sys.exit(0)
           for md in files:
@@ -82,3 +82,4 @@ jobs:
           devto_key: ${{ secrets.DEVTO_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           files: ${{ steps.changed.outputs.FILES }}
+          branch: publish
