@@ -7,7 +7,7 @@ id: 3240369
 
 This is a test article for DEV.to to demonstrate code inclusion. Změna.
 
-<!-- Final final publish test -->
+<!-- With paths -->
 
 :(test.js)
 
