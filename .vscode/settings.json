@@ -17,7 +17,9 @@
         "dist/": true,
         ".gitignore": true,
         "*.spec": true,
-        "*.code-workspace": true
+        "*.code-workspace": true,
+        ".github/": true,
+        "tmp/": true
     },
     "hide-files.files": []
 }

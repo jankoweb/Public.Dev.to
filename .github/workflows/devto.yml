@@ -1,3 +1,7 @@
+# Publish articles from posts/ to dev.to
+# Requires DEVTO_API_KEY secret to be set in GitHub repository settings
+# Get API key from: DEV.to → Settings → Account → DEV API Keys
+# Add as GitHub Secret: DEVTO_API_KEY (note: secret won't be visible after saving)
 name: Publish to dev.to
 
 on:
