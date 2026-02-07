@@ -158,56 +158,62 @@ jobs:
         env:
           RESULT_JSON: ${{ steps.publish.outputs.result_json }}
           FILES: ${{ steps.changed.outputs.FILES }}
+          DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
         run: |
           python - <<'PY'
-          import os, json, re
+          import os, json, re, urllib.request
           res = os.environ.get('RESULT_JSON','').strip()
           files = [l.strip() for l in os.environ.get('FILES','').splitlines() if l.strip()]
-          if not res or not files:
-            print('No result_json or files')
+          key = os.environ.get('DEVTO_API_KEY','')
+          if not files or not key:
+            print('No files or API key')
             raise SystemExit(0)
-          try:
-            data = json.loads(res)
-          except Exception:
-            data = []
-          if not isinstance(data, list):
-            data = [data]
+          
           for md in files:
-            match = next((a for a in data if a.get('file')==md or a.get('filename')==md), None)
-            if not match:
-              try:
-                s = open(md, encoding='utf-8').read()
-              except Exception:
-                continue
-              m = re.search(r'---\n(.*?)\n---', s, re.S)
-              title = None
-              if m:
-                fm = m.group(1)
-                tm = re.search(r'^title:\s*["\']?(.*?)["\']?$', fm, re.M)
-                if tm:
-                  title = tm.group(1).strip()
-              if title:
-                match = next((a for a in data if a.get('title','').strip()==title), None)
-            if not match:
-              print('No match for', md)
-              continue
-            slug = match.get('slug') or ''
-            if not slug:
-              print('No slug for', md)
+            if not os.path.exists(md):
               continue
             s = open(md, encoding='utf-8').read()
-            m = re.match(r'---\n(.*?)\n---\n(.*)', s, re.S)
+            m = re.match(r'---\n(.*?)\n---', s, re.S)
             if not m:
               continue
-            fm, rest = m.group(1), m.group(2)
+            fm = m.group(1)
+            idm = re.search(r'devto_id\s*:\s*(\d+)', fm)
+            if not idm:
+              idm = re.search(r'id\s*:\s*(\d+)', fm)
+            if not idm:
+              print('No devto id for', md)
+              continue
+            aid = idm.group(1)
+            
+            # Fetch article details from dev.to API
+            url = f'https://dev.to/api/articles/{aid}'
+            req = urllib.request.Request(url, headers={'api-key': key, 'Content-Type':'application/json'})
+            try:
+              with urllib.request.urlopen(req) as resp:
+                article_data = json.loads(resp.read().decode('utf-8'))
+                slug = article_data.get('slug', '')
+                article_url = article_data.get('url', '')
+                if not slug:
+                  print('No slug in API response for', md)
+                  continue
+            except Exception as e:
+              print('Failed to fetch article data for', md, aid, str(e))
+              continue
+            
+            # Update frontmatter with slug and url
+            rest = s[m.end():]
             if re.search(r'(^|\n)slug:\s*', fm):
               fm2 = re.sub(r'(^|\n)slug:\s*.*', r'\1slug: ' + slug, fm)
             else:
               fm2 = fm + '\nslug: ' + slug
+            if re.search(r'(^|\n)url:\s*', fm2):
+              fm2 = re.sub(r'(^|\n)url:\s*.*', r'\1url: ' + article_url, fm2)
+            else:
+              fm2 = fm2 + '\nurl: ' + article_url
             new = '---\n' + fm2 + '\n---\n' + rest
             if new != s:
               open(md, 'w', encoding='utf-8').write(new)
-              print('WROTE SLUG ->', md, slug)
+              print('WROTE SLUG and URL ->', md, slug, article_url)
           PY
 
       - name: Commit slug updates
