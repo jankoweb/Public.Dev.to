@@ -22,20 +22,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get changed posts
+      - name: Get changed and deleted posts
         id: changed
         run: |
-          # Always get changed files from git diff
+          # Get changed/added files
           if git rev-parse HEAD~1 >/dev/null 2>&1; then
-            FILES=$(git diff --name-only HEAD~1 HEAD \
+            FILES=$(git diff --name-only --diff-filter=AM HEAD~1 HEAD \
+              | grep '^posts/.*\.md$' \
+              | tr '\n' ' ')
+            DELETED=$(git diff --name-only --diff-filter=D HEAD~1 HEAD \
               | grep '^posts/.*\.md$' \
               | tr '\n' ' ')
           else
             FILES=$(git show --name-only --pretty="" HEAD \
               | grep '^posts/.*\.md$' \
               | tr '\n' ' ')
+            DELETED=""
           fi
           echo "FILES=$FILES" >> $GITHUB_OUTPUT
+          echo "DELETED=$DELETED" >> $GITHUB_OUTPUT
+          echo "Changed files: $FILES"
+          echo "Deleted files: $DELETED"
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -95,10 +102,8 @@ jobs:
               gh_out = os.environ.get('GITHUB_OUTPUT')
               if gh_out:
                   with open(gh_out, 'a', encoding='utf-8') as out:
-                      out.write('PROCESSED_FILES<<EOF\n')
-                      for p in processed:
-                          out.write(p + '\n')
-                      out.write('EOF\n')
+                      # Output as space-separated list for publish-devto action
+                      out.write(f"PROCESSED_FILES={' '.join(processed)}\n")
           PY
 
       - name: Publish articles to dev.to
@@ -109,3 +114,75 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           files: ${{ steps.include.outputs.PROCESSED_FILES }}
           conventional_commits: true
+
+      - name: Handle deleted articles
+        if: steps.changed.outputs.DELETED != ''
+        env:
+          DELETED: ${{ steps.changed.outputs.DELETED }}
+          DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
+        run: |
+          python - <<'PY'
+          import os, sys, re, json
+          try:
+              import urllib.request
+          except ImportError:
+              print("urllib not available")
+              sys.exit(0)
+          
+          deleted = os.environ.get('DELETED', '').strip()
+          api_key = os.environ.get('DEVTO_API_KEY', '').strip()
+          
+          if not deleted or not api_key:
+              print("No deleted files or API key not set")
+              sys.exit(0)
+          
+          # For each deleted file, try to find its ID from git history
+          for md_file in deleted.split():
+              if not md_file:
+                  continue
+              print(f"Processing deleted file: {md_file}")
+              
+              # Get the last version of the file from git
+              try:
+                  import subprocess
+                  result = subprocess.run(
+                      ['git', 'show', f'HEAD~1:{md_file}'],
+                      capture_output=True,
+                      text=True,
+                      check=True
+                  )
+                  content = result.stdout
+                  
+                  # Extract ID from front matter
+                  match = re.search(r'^id:\s*(\d+)\s*$', content, re.MULTILINE)
+                  if match:
+                      article_id = match.group(1)
+                      print(f"Found article ID: {article_id}")
+                      
+                      # Unpublish the article on dev.to
+                      url = f'https://dev.to/api/articles/{article_id}/unpublish'
+                      req = urllib.request.Request(
+                          url,
+                          method='PUT',
+                          headers={
+                              'api-key': api_key,
+                              'Content-Type': 'application/json'
+                          }
+                      )
+                      
+                      try:
+                          response = urllib.request.urlopen(req)
+                          print(f"Successfully unpublished article {article_id}")
+                      except urllib.error.HTTPError as e:
+                          print(f"Failed to unpublish article {article_id}: {e.code} {e.reason}")
+                          if e.code == 404:
+                              print("Article not found (may have been already deleted)")
+                          else:
+                              print(f"Response: {e.read().decode('utf-8')}")
+                  else:
+                      print(f"No article ID found in {md_file}")
+              except subprocess.CalledProcessError as e:
+                  print(f"Could not retrieve file from git: {e}")
+              except Exception as e:
+                  print(f"Error processing {md_file}: {e}")
+          PY
