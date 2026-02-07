@@ -29,13 +29,15 @@ jobs:
           if git rev-parse HEAD~1 >/dev/null 2>&1; then
             FILES=$(git diff --name-only HEAD~1 HEAD \
               | grep '^posts/.*\.md$' \
-              | tr '\n' ' ')
+              || true)
           else
             FILES=$(git show --name-only --pretty="" HEAD \
               | grep '^posts/.*\.md$' \
-              | tr '\n' ' ')
+              || true)
           fi
-          echo "FILES=$FILES" >> $GITHUB_OUTPUT
+          echo "FILES<<EOF" >> $GITHUB_OUTPUT
+          printf '%s\n' "$FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -56,7 +58,7 @@ jobs:
               sys.exit(0)
           os.makedirs(out_dir, exist_ok=True)
           processed = []
-          for md in files.split():
+          for md in files.splitlines():
               if not os.path.exists(md):
                   print('Skip missing:', md)
                   continue
