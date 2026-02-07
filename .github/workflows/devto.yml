@@ -26,7 +26,7 @@ jobs:
         id: changed
         run: |
           # Get all changed files in posts/
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep '^posts/' || true)
+          CHANGED_FILES=$(git show --name-only HEAD | grep '^posts/' || true)
           FILES=""
           while IFS= read -r file; do
             if [[ $file == *.md ]]; then
