@@ -3,7 +3,7 @@ name: Publish to dev.to
 on:
   push:
     paths:
-      - 'Dev.to/posts/**'
+      - 'posts/**'
   workflow_dispatch:
     inputs:
       folder:
