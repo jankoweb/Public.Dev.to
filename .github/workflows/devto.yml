@@ -86,29 +86,8 @@ PY
 
       - name: Publish articles to dev.to
         if: steps.changed.outputs.FILES != ''
-        env:
-          DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
-          FILES: ${{ steps.changed.outputs.FILES }}
-        run: |
-          process_file() {
-            local file="$1"
-            local id=$(grep -E '^id:' "$file" | sed 's/id: *//')
-            if [ -n "$id" ]; then
-              echo "Updating article $id"
-              npx devto-cli update "$file"
-            else
-              echo "Creating new article"
-              local result=$(npx devto-cli create "$file")
-              local new_id=$(echo "$result" | grep -oP 'id: \K\d+')
-              if [ -n "$new_id" ]; then
-                echo "Adding id $new_id to $file"
-                sed -i "1a id: $new_id" "$file"
-                git add "$file"
-                git commit -m "Add id to $file"
-                git push
-              fi
-            fi
-          }
-          for file in $FILES; do
-            process_file "$file"
-          done
+        uses: sinedied/publish-devto@v2
+        with:
+          devto_key: ${{ secrets.DEVTO_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          files: ${{ steps.changed.outputs.FILES }}
