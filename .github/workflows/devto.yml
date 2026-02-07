@@ -1,9 +1,7 @@
 name: Publish to dev.to
 
 on:
-  push:
-    branches:
-      - publish
+  push
 
 permissions:
   contents: write
