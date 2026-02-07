@@ -17,6 +17,8 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Skip workflow if commit is from github-actions bot (front-matter updates)
+    if: github.actor != 'github-actions[bot]'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -102,8 +104,10 @@ jobs:
               gh_out = os.environ.get('GITHUB_OUTPUT')
               if gh_out:
                   with open(gh_out, 'a', encoding='utf-8') as out:
-                      # Output as space-separated list for publish-devto action
-                      out.write(f"PROCESSED_FILES={' '.join(processed)}\n")
+                      # Output as newline-separated list for publish-devto action
+                      out.write('PROCESSED_FILES<<EOF\n')
+                      out.write('\n'.join(processed))
+                      out.write('\nEOF\n')
           PY
 
       - name: Publish articles to dev.to
@@ -175,7 +179,7 @@ jobs:
                   updated_keys = set()
                   
                   for line in original_fm_lines:
-                      key_match = re.match(r'^(\w+):', line)
+                      key_match = re.match(r'^([\w-]+):', line)
                       if key_match:
                           key = key_match.group(1)
                           if key in updates:
@@ -215,7 +219,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "chore: update article front-matter [skip ci]"
+            git commit -m "chore: update article front-matter"
             git push
           fi
 
