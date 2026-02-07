@@ -1,7 +1,9 @@
 ---
-title: "Testovací článek: jak připravuji příspěvek pro DEV.to"
+title: 'Testovací článek: jak připravuji příspěvek pro DEV.to'
 published: true
 tags: 'devto, blogging, writing, productivity'
+id: 3240492
+date: '2026-02-07T21:26:46Z'
 ---
 
 Tento krátký článek slouží jako ukázka hotového příspěvku připraveného k publikaci na DEV.to. Je jednoduchý, ale obsahuje všechny důležité části: smysluplný titulek, tagy a strukturovaný text.
