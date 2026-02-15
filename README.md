@@ -7,6 +7,15 @@
 :(path/to/file.ext)
 ```
 - publikuje se automaticky z větve `publish` při změně souborů v `posts/`
+- po publikaci se do front-matter automaticky přidá `id`, `date` a `url`
+
+## Automatizace
+Workflow automaticky:
+- ✅ **Publikuje nové články** na DEV.to
+- ✅ **Zpracovává `:(path/file.ext)` syntaxi** - vkládá obsah souborů jako kódové bloky
+- ✅ **Aktualizuje články** když je změníte
+- ✅ **Zapisuje id, date, url** do front-matter po publikaci
+- ✅ **Odstraňuje články z DEV.to** když je smažete z repozitáře
 
 ## Ruční psaní
 Front-matter:
@@ -19,6 +28,7 @@ tags: [tag1, tag2]
 ```
 - `title` je identifikátor, neměňte při updatu.
 - Max 4 tagy.
+- `id`, `date`, `url` se přidávají automaticky po první publikaci.
 
 ## DEV.to API klíč
 
@@ -28,3 +38,4 @@ tags: [tag1, tag2]
 ## FAQ
 - HTTP 422: změněný title, nevalidní front-matter.
 - 403: přidejte `permissions: contents: write`.
+- Článek se nesmazal z DEV.to: musí mít `id` ve front-matter před smazáním.
