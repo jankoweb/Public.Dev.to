@@ -1,6 +1,6 @@
 ---
 title: test kodu
-published: false
+published: true
 tags: 'test, devto, automation'
 ---
 
